@@ -7,12 +7,16 @@ sudo apt install -y wireguard
 
 # 必要な情報をユーザーから取得
 read -p "サーバーのグローバルIPアドレスを入力してください: " SERVER_IP
-read -p "WireGuardのリスニングポートを入力してください (デフォルト: 51820): " LISTEN_PORT
+read -p "WireGuardがリッスンする内部ポートを入力してください (デフォルト: 51820): " LISTEN_PORT
 LISTEN_PORT=${LISTEN_PORT:-51820}
+
+read -p "外部から接続するポートを入力してください (同じ場合はEnter): " EXTERNAL_PORT
+EXTERNAL_PORT=${EXTERNAL_PORT:-$LISTEN_PORT} # 空の場合はLISTEN_PORTと同じにする
+
 read -p "VPN用のサブネットを入力してください (例: 10.0.0.1/24): " VPN_SUBNET
 
 # サーバーのエンドポイント情報を保存 (qrcode.shで利用)
-echo "${SERVER_IP}:${LISTEN_PORT}" | sudo tee /etc/wireguard/server_endpoint_info > /dev/null
+echo "${SERVER_IP}:${EXTERNAL_PORT}" | sudo tee /etc/wireguard/server_endpoint_info > /dev/null
 
 # サーバーの秘密鍵と公開鍵を生成
 echo "サーバー用のキーペアを生成しています..."
