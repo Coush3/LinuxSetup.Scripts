@@ -63,12 +63,24 @@ generate_new_client() {
 
     read -p "クライアントのVPN内IPアドレスを入力してください (例: 10.0.0.2): " CLIENT_IP
 
-    # クライアント設定を作成
-    local client_config="[Interface]\nPrivateKey = $client_private_key\nAddress = $CLIENT_IP/32\nDNS = 8.8.8.8\n\n[Peer]\nPublicKey = $SERVER_PUBLIC_KEY\nAllowedIPs = 0.0.0.0/0\nEndpoint = $SERVER_ENDPOINT"
+    # クライアント設定を作成 (ヒアドキュメント形式に変更)
+    local client_config=$(cat <<EOF
+[Interface]
+PrivateKey = $client_private_key
+Address = $CLIENT_IP/32
+DNS = 8.8.8.8
+
+[Peer]
+PublicKey = $SERVER_PUBLIC_KEY
+AllowedIPs = 0.0.0.0/0
+Endpoint = $SERVER_ENDPOINT
+EOF
+)
+
     local add_command="sudo wg set wg0 peer $client_public_key allowed-ips $CLIENT_IP/32"
 
     # 履歴ファイルに保存
-    echo -e "$client_config" > "$HISTORY_DIR/$CLIENT_NAME.conf"
+    echo "$client_config" > "$HISTORY_DIR/$CLIENT_NAME.conf"
     echo "$add_command" > "$HISTORY_DIR/$CLIENT_NAME.sh"
 
     echo ""
