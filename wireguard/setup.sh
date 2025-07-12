@@ -11,6 +11,9 @@ read -p "WireGuardのリスニングポートを入力してください (デフ
 LISTEN_PORT=${LISTEN_PORT:-51820}
 read -p "VPN用のサブネットを入力してください (例: 10.0.0.1/24): " VPN_SUBNET
 
+# サーバーのエンドポイント情報を保存 (qrcode.shで利用)
+echo "${SERVER_IP}:${LISTEN_PORT}" | sudo tee /etc/wireguard/server_endpoint_info > /dev/null
+
 # サーバーの秘密鍵と公開鍵を生成
 echo "サーバー用のキーペアを生成しています..."
 wg genkey | sudo tee /etc/wireguard/privatekey | wg pubkey | sudo tee /etc/wireguard/publickey

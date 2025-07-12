@@ -3,6 +3,22 @@
 HISTORY_DIR=~/.wireguard_clients
 mkdir -p "$HISTORY_DIR"
 
+# サーバーの公開鍵ファイルが存在するか確認
+SERVER_PUBLIC_KEY_PATH="/etc/wireguard/publickey"
+SERVER_ENDPOINT_INFO_PATH="/etc/wireguard/server_endpoint_info"
+
+if [ ! -f "$SERVER_PUBLIC_KEY_PATH" ] || [ ! -f "$SERVER_ENDPOINT_INFO_PATH" ]; then
+    echo "エラー: WireGuardサーバーの公開鍵ファイルまたはエンドポイント情報ファイルが見つかりません。"
+    echo "先に setup.sh を実行してWireGuardサーバーをセットアップしてください。"
+    exit 1
+fi
+
+# サーバーの公開鍵を読み込む
+SERVER_PUBLIC_KEY=$(sudo cat "$SERVER_PUBLIC_KEY_PATH")
+
+# サーバーのエンドポイントを読み込む
+SERVER_ENDPOINT=$(sudo cat "$SERVER_ENDPOINT_INFO_PATH")
+
 # qrencodeがインストールされているか確認
 if ! command -v qrencode &> /dev/null
 then
@@ -46,8 +62,6 @@ generate_new_client() {
     local client_public_key=$(echo "$client_private_key" | wg pubkey)
 
     read -p "クライアントのVPN内IPアドレスを入力してください (例: 10.0.0.2): " CLIENT_IP
-    read -p "サーバーの公開鍵を入力してください: " SERVER_PUBLIC_KEY
-    read -p "サーバーのエンドポイント(IP:ポート)を入力してください: " SERVER_ENDPOINT
 
     # クライアント設定を作成
     local client_config="[Interface]\nPrivateKey = $client_private_key\nAddress = $CLIENT_IP/32\nDNS = 8.8.8.8\n\n[Peer]\nPublicKey = $SERVER_PUBLIC_KEY\nAllowedIPs = 0.0.0.0/0\nEndpoint = $SERVER_ENDPOINT"
