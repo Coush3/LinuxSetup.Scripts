@@ -62,13 +62,15 @@ generate_new_client() {
     local client_public_key=$(echo "$client_private_key" | wg pubkey)
 
     read -p "クライアントのVPN内IPアドレスを入力してください (例: 10.0.0.2): " CLIENT_IP
+    read -p "使用するDNSサーバーのIPアドレスを入力してください (デフォルト: 8.8.8.8): " DNS_SERVER
+    DNS_SERVER=${DNS_SERVER:-8.8.8.8}
 
     # クライアント設定を作成 (ヒアドキュメント形式に変更)
     local client_config=$(cat <<EOF
 [Interface]
 PrivateKey = $client_private_key
 Address = $CLIENT_IP/32
-DNS = 8.8.8.8
+DNS = $DNS_SERVER
 
 [Peer]
 PublicKey = $SERVER_PUBLIC_KEY
