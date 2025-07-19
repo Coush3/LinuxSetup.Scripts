@@ -332,9 +332,20 @@ guest ok = yes
         elif function_id == "start_vscode_web_server":
             print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
             try:
-                subprocess.run("code serve-web --host 0.0.0.0", shell=True, check=True)
+                subprocess.run("code serve-web --host 0.0.0.0", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                print(result.stderr)
+                # ログからURLを抽出して表示
+                import re
+                match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", result.stdout)
+                if match:
+                    print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
+                else:
+                    print("アクセスURLを検出できませんでした。ログを確認してください。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "code_server_start_manual":
             print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
             try:

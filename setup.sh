@@ -52,7 +52,20 @@ EOF
     chmod +x "$SCRIPT_DIR/update"
     echo "'update' に実行権限を付与しました。"
 
-    # 6. ロックファイルを作成
+    # 6. webmenu.py を実行する webmenu スクリプトを作成
+    echo "起動スクリプト 'webmenu' を作成します..."
+    cat <<'EOF' > "$SCRIPT_DIR/webmenu"
+#!/bin/bash
+# このスクリプト自身のディレクトリを取得し、そこにあるwebmenu.pyを実行
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+python3 "$SCRIPT_DIR/webmenu.py" "$@"
+EOF
+
+    # 7. webmenu スクリプトに実行権限を付与
+    chmod +x "$SCRIPT_DIR/webmenu"
+    echo "'webmenu' に実行権限を付与しました。"
+
+    # 8. ロックファイルを作成
     touch "$LOCK_FILE"
 
     echo "セットアップが完了しました。"
