@@ -23,6 +23,9 @@ menu:
       - id: install_gh
         title: GitHub CLI (gh) をインストール
         description: GitHubのコマンドラインツールをインストールします。
+      - id: install_code_server
+        title: Code Serverをインストール
+        description: WebブラウザからアクセスできるVS Codeをインストールします。
   - title: ユーティリティ
     description: その他の便利なツール
     items:

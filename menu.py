@@ -212,6 +212,24 @@ guest ok = yes
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: GitHub CLIのインストールに失敗しました: {e}")
 
+        elif function_id == "install_code_server":
+            print("Code Serverのインストールを開始します...")
+            try:
+                # code-serverがインストールされているか確認
+                subprocess.run("code-server --version", shell=True, check=True, capture_output=True)
+                print("Code Serverは既にインストールされています。")
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("Code Serverをインストールします...")
+                try:
+                    # 公式のインストールスクリプトを実行
+                    install_command = '''
+                    curl -fsSL https://code-server.dev/install.sh | sh
+                    '''
+                    subprocess.run(install_command, shell=True, check=True)
+                    print("Code Serverのインストールが完了しました。")
+                except subprocess.CalledProcessError as e:
+                    print(f"エラー: Code Serverのインストールに失敗しました: {e}")
+
         elif function_id == "samba_delete_share":
             # Webから呼び出す場合はinput_dataに削除する共有名が含まれる
             share_name_to_delete = input_data.get("share_name") if input_data else None
