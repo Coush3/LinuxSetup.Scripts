@@ -71,6 +71,33 @@ EOF
     echo "セットアップが完了しました。"
     echo "今後は ./menu コマンドでアプリケーションを起動できます。"
 
+    # ホームディレクトリにシンボリックリンクを作成するかの確認
+    echo
+    read -p "ホームディレクトリ (~/) に 'menu' と 'webmenu' のショートカットを作成しますか？ (y/N): " answer
+    case ${answer:0:1} in
+        y|Y )
+            echo "ショートカットを作成します..."
+            # menu
+            if [ -f "$HOME/menu" ]; then
+                echo "警告: ~/menu は既に存在します。上書きはしませんでした。"
+            else
+                ln -s "$SCRIPT_DIR/menu" "$HOME/menu"
+                echo "~/menu を作成しました。"
+            fi
+            # webmenu
+            if [ -f "$HOME/webmenu" ]; then
+                echo "警告: ~/webmenu は既に存在します。上書きはしませんでした。"
+            else
+                ln -s "$SCRIPT_DIR/webmenu" "$HOME/webmenu"
+                echo "~/webmenu を作成しました。"
+            fi
+            echo "今後はターミナルのどこからでも 'menu' または 'webmenu' コマンドで起動できます。"
+        ;;
+        * )
+            echo "ショートカットは作成しませんでした。"
+        ;;
+    esac
+
 else
     echo "セットアップは既に完了しています。"
     echo "./menu コマンドでアプリケーションを起動してください。"
