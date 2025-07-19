@@ -248,6 +248,15 @@ guest ok = yes
         elif function_id == "install_vscode_desktop":
             print("Visual Studio Code (Desktop) のインストールを開始します...")
             try:
+                # vscode ユーザーが存在しない場合、作成する
+                try:
+                    subprocess.run("id -u vscode", shell=True, check=True, capture_output=True)
+                    print("ユーザー 'vscode' は既に存在します。")
+                except subprocess.CalledProcessError:
+                    print("ユーザー 'vscode' を作成します...")
+                    subprocess.run("sudo useradd -m -s /bin/bash vscode", shell=True, check=True)
+                    print("ユーザー 'vscode' を作成しました。")
+
                 # VS CodeのGPGキーをインポート
                 subprocess.run("wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg", shell=True, check=True)
                 subprocess.run("sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg", shell=True, check=True)
@@ -341,7 +350,9 @@ guest ok = yes
         elif function_id == "start_vscode_web_server":
             print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
             try:
-                subprocess.run("code serve-web --host 0.0.0.0", shell=True, check=True, capture_output=True, text=True)
+                # vscode ユーザーとしてcode serve-webを実行
+                command = "sudo -u vscode code serve-web --host 0.0.0.0"
+                result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
                 print(result.stderr)
                 # ログからURLを抽出して表示
