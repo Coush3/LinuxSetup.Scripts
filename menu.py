@@ -332,7 +332,7 @@ guest ok = yes
         elif function_id == "start_vscode_web_server":
             print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
             try:
-                subprocess.run("code serve-web --bind-addr 0.0.0.0:8000", shell=True, check=True)
+                subprocess.run("code serve-web", shell=True, check=True)
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
         elif function_id == "code_server_start_manual":
