@@ -728,17 +728,29 @@ guest ok = yes
         elif function_id == "code_server_set_password":
             print("Code Serverのパスワードを設定します...")
             try:
-                config_path = "/root/.config/code-server/config.yaml"
+                # config_path を動的に取得
+                # os.path.expanduser('~') は、スクリプトを実行しているユーザーのホームディレクトリを返す
+                # sudo で実行している場合は /root を返す
+                config_dir = os.path.join(os.path.expanduser("~"), ".config", "code-server")
+                config_path = os.path.join(config_dir, "config.yaml")
+
+                # ディレクトリが存在しない場合は作成
+                if not os.path.exists(config_dir):
+                    os.makedirs(config_dir, exist_ok=True)
+                    print(f"設定ディレクトリを作成しました: {config_dir}")
+
+                # config.yaml が存在しない場合は空のファイルを作成
                 if not os.path.exists(config_path):
-                    print("config.yamlが見つかりません。Code Serverがインストールされていないか、設定ファイルが作成されていません。")
-                    return
+                    with open(config_path, "w") as f:
+                        yaml.safe_dump({}, f) # 空のYAMLファイルを作成
+                    print(f"設定ファイルを作成しました: {config_path}")
 
                 new_password = input_data.get("password") if input_data and "password" in input_data else None
                 if not new_password:
                     new_password = input("新しいパスワードを入力してください: ")
 
                 with open(config_path, "r") as f:
-                    config = yaml.safe_load(f)
+                    config = yaml.safe_load(f) or {} # ファイルが空の場合に備えて空の辞書をデフォルトにする
                 config["password"] = new_password
                 with open(config_path, "w") as f:
                     yaml.safe_dump(config, f)
