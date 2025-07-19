@@ -488,36 +488,23 @@ guest ok = yes
                 print(f"標準出力: {e.stdout}")
                 print(f"標準エラー: {e.stderr}")
         elif function_id == "start_vscode_web_server":
-            print("VS Code Webサーバーをバックグラウンドで起動します...")
-            log_file_path = "/tmp/vscode_web_server.log"
+            print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
             try:
                 # 既存のプロセスを終了 (念のため)
                 subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
 
-                # vscode ユーザーとしてcode serve-webをバックグラウンドで実行し、ログをファイルにリダイレクト
-                command = "nohup code serve-web --host 0.0.0.0 --no-sandbox --user-data-dir /root/.vscode-server-data --extensions-dir /root/.vscode-server-extensions > {log_file_path} 2>&1 &"
-                subprocess.run(command, shell=True, check=True)
-
-                print(f"VS Code Webサーバーをバックグラウンドで起動しました。ログは {log_file_path} を確認してください。")
-                print("URLを検出しています... (最大15秒)")
-                url_found = False
-                start_time = time.time()
-                while time.time() - start_time < 15: # 最大15秒待機
-                    if os.path.exists(log_file_path):
-                        with open(log_file_path, 'r') as f:
-                            log_content = f.read()
-                            match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", log_content)
-                            if match:
-                                print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
-                                url_found = True
-                                break
-                    time.sleep(1) # 1秒ごとにチェック
-
-                if not url_found:
-                    print("アクセスURLを検出できませんでした。ログファイルを確認してください。")
-                print("VS Code Webサーバーはバックグラウンドで実行中です。")
-                print("停止するには、以下のコマンドを実行してください:")
-                print("  sudo pkill -f 'code serve-web'")
+                # rootユーザーとしてcode serve-webをフォアグラウンドで実行
+                command = "code serve-web --host 0.0.0.0 --no-sandbox --user-data-dir /root/.vscode-server-data --extensions-dir /root/.vscode-server-extensions"
+                result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                print(result.stderr)
+                # ログからURLを抽出して表示
+                import re
+                match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", result.stdout)
+                if match:
+                    print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
+                else:
+                    print("アクセスURLを検出できませんでした。ログを確認してください。")
 
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
