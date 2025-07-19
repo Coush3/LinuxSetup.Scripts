@@ -287,7 +287,7 @@ guest ok = yes
                     with open(config_path, "r") as f:
                         config = yaml.safe_load(f)
                         if "password" in config:
-                            print(f"現在のパスワード: {config["password"]}")
+                            print(f"現在のパスワード: {config['password']}")
                         else:
                             print("config.yamlにパスワードが設定されていません。")
                 else:
