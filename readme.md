@@ -58,10 +58,24 @@ cd LinuxSetup.Scripts
 
 ### セットアップスクリプトの実行
 
-リポジトリをクローンしたら、以下のコマンドでセットアップスクリプトを実行します。これにより、必要なPythonモジュールのインストールと、`menu` コマンドが設定されます。
+リポジトリをクローンしたら、まず以下のコマンドでセットアップスクリプトに実行権限を付与します。
+
+```bash
+chmod +x setup.sh
+```
+
+次に、スクリプトを実行します。これにより、必要なPythonモジュールのインストールと、`menu` コマンドが設定されます。
 
 ```bash
 ./setup.sh
+```
+
+### (オプション) インストールとセットアップを1行で
+
+リポジトリのクローンからセットアップまでを一度に実行したい場合は、以下のコマンドを使用できます。
+
+```bash
+git clone https://github.com/Coush3/LinuxSetup.Scripts.git && cd LinuxSetup.Scripts && chmod +x setup.sh && ./setup.sh
 ```
 
 ### メニューの実行

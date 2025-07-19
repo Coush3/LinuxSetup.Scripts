@@ -29,8 +29,8 @@ if [ ! -f "$LOCK_FILE" ]; then
     echo "起動スクリプト 'menu' を作成します..."
     cat <<'EOF' > "$SCRIPT_DIR/menu"
 #!/bin/bash
-# このスクリプト自身のディレクトリを取得し、そこにあるmenu.pyを実行
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+# このスクリプト自身のディレクトリ（シンボリックリンクの実体）を取得し、そこにあるmenu.pyを実行
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 python3 "$SCRIPT_DIR/menu.py" "$@"
 EOF
 
@@ -56,8 +56,8 @@ EOF
     echo "更新スクリプト 'pull' を作成します..."
     cat <<'EOF' > "$SCRIPT_DIR/pull"
 #!/bin/bash
-# このスクリプト自身のディレクトリに移動し、git pullを実行
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+# このスクリプト自身のディレクトリ（シンボリックリンクの実体）に移動し、git pullを実行
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 cd "$SCRIPT_DIR"
 git pull
 EOF
@@ -70,8 +70,8 @@ EOF
     echo "起動スクリプト 'webmenu' を作成します..."
     cat <<'EOF' > "$SCRIPT_DIR/webmenu"
 #!/bin/bash
-# このスクリプト自身のディレクトリを取得し、そこにあるwebmenu.pyを実行
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+# このスクリプト自身のディレクトリ（シンボリックリンクの実体）を取得し、そこにあるwebmenu.pyを実行
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 python3 "$SCRIPT_DIR/webmenu.py" "$@"
 EOF
 
