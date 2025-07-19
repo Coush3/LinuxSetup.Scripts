@@ -32,27 +32,15 @@ menu:
       - id: samba_delete_share
         title: Samba共有の削除
         description: 既存のSamba共有を選択して削除します。
-  - title: アプリケーションインストール
-    description: 各種アプリケーションのインストール
+  - title: アプリケーション
+    description: 各種アプリケーションのインストールと操作
     items:
-      - id: install_ms_edit
-        title: Microsoft Editをインストール
-        description: GitHubからMicrosoft Editをダウンロードしてインストールします。
-      - id: install_gh
-        title: GitHub CLI (gh) をインストール
-        description: GitHubのコマンドラインツールをインストールします。
-      - id: install_vscode_desktop
-        title: Visual Studio Code (Desktop) をインストール
-        description: デスクトップ版のVisual Studio Codeをインストールします。
-      - id: install_code_server
-        title: Code Serverをインストール
-        description: WebブラウザからアクセスできるVS Codeをインストールします。
-      - id: install_vscode_remote_server_deps
-        title: VS Code Remote - SSH Serverの依存関係をインストール
-        description: VS Code Remote - SSH Serverが動作するために必要な依存関係をインストールします。
       - title: Code Server
-        description: Code Serverの操作
+        description: WebブラウザからアクセスできるVS Code
         items:
+          - id: install_code_server
+            title: Code Serverをインストール
+            description: WebブラウザからアクセスできるVS Codeをインストールします。
           - id: code_server_start_manual
             title: Code Serverを手動で起動
             description: Code Serverをフォアグラウンドで起動します。
@@ -68,6 +56,33 @@ menu:
           - id: code_server_set_password
             title: Code Serverパスワード設定
             description: Code Serverのパスワードを設定します。
+      - title: Visual Studio Code (Desktop)
+        description: デスクトップ版のVisual Studio Code
+        items:
+          - id: install_vscode_desktop
+            title: Visual Studio Code (Desktop) をインストール
+            description: デスクトップ版のVisual Studio Codeをインストールします。
+          - id: start_vscode_web_server
+            title: VS Code Webサーバーを起動
+            description: デスクトップ版VS CodeのWebサーバーを起動し、ブラウザからアクセスできるようにします。
+      - title: Microsoft Edit
+        description: Microsoftの軽量テキストエディタ
+        items:
+          - id: install_ms_edit
+            title: Microsoft Editをインストール
+            description: GitHubからMicrosoft Editをダウンロードしてインストールします。
+      - title: GitHub CLI (gh)
+        description: GitHubのコマンドラインツール
+        items:
+          - id: install_gh
+            title: GitHub CLI (gh) をインストール
+            description: GitHubのコマンドラインツールをインストールします。
+      - title: VS Code Remote - SSH Server
+        description: リモート開発のためのVS Codeサーバー
+        items:
+          - id: install_vscode_remote_server_deps
+            title: VS Code Remote - SSH Serverの依存関係をインストール
+            description: VS Code Remote - SSH Serverが動作するために必要な依存関係をインストールします。
   - title: ユーティリティ
     description: その他の便利なツール
     items:
@@ -77,6 +92,3 @@ menu:
       - id: screen_resume
         title: Screenセッションを再開
         description: 既存のGNU Screenセッションを再開します。
-      - id: start_vscode_web_server
-        title: VS Code Webサーバーを起動
-        description: デスクトップ版VS CodeのWebサーバーを起動し、ブラウザからアクセスできるようにします。
