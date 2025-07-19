@@ -27,10 +27,10 @@ if [ ! -f "$LOCK_FILE" ]; then
 
     # 2. menu.py を実行する menu スクリプトを作成
     echo "起動スクリプト 'menu' を作成します..."
-    cat <<EOF > "$SCRIPT_DIR/menu"
+    cat <<'EOF' > "$SCRIPT_DIR/menu"
 #!/bin/bash
 # このスクリプト自身のディレクトリを取得し、そこにあるmenu.pyを実行
-SCRIPT_DIR=\$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 python3 "$SCRIPT_DIR/menu.py" "$@"
 EOF
 
@@ -40,10 +40,10 @@ EOF
 
     # 4. リポジトリを更新する update スクリプトを作成
     echo "更新スクリプト 'update' を作成します..."
-    cat <<EOF > "$SCRIPT_DIR/update"
+    cat <<'EOF' > "$SCRIPT_DIR/update"
 #!/bin/bash
 # このスクリプト自身のディレクトリに移動し、git pullを実行
-SCRIPT_DIR=\$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 cd "$SCRIPT_DIR"
 git pull
 EOF
