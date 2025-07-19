@@ -77,12 +77,14 @@ def main():
         if hasattr(args, 'password') and args.password:
             input_data['password'] = args.password
         
-        execute_function(function_id, input_data=input_data)
+        captured_output = execute_function(function_id, input_data=input_data)
+        print(captured_output)
     else:
         # 引数がなければ、メニューを表示
         function_id = curses.wrapper(show_menu)
         if function_id:
-            execute_function(function_id, input_data=None)
+            captured_output = execute_function(function_id, input_data=None)
+            print(captured_output)
 
 def show_menu(stdscr):
     # cursesの初期設定
@@ -359,7 +361,14 @@ guest ok = yes
             print("Visual Studio Code (Desktop) のインストールを開始します...")
             try:
                 # パッケージリストを更新してVS Codeをインストール
-                result = subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True, capture_output=True, text=True)
+                result = subprocess.run("sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                # パッケージリストを更新してVS Codeをインストール
+                print("パッケージリストを更新しています...")
+                result = subprocess.run("sudo apt update", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                print("VS Codeをインストールしています...")
+                result = subprocess.run("sudo apt install -y code", shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
 
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
