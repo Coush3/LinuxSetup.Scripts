@@ -11,6 +11,9 @@ menu:
       - id: samba_install_and_share
         title: Sambaインストールと共有設定
         description: Sambaをインストールし、指定されたフォルダを共有します。
+      - id: samba_delete_share
+        title: Samba共有の削除
+        description: 既存のSamba共有を選択して削除します。
   - title: アプリケーションインストール
     description: 各種アプリケーションのインストール
     items:

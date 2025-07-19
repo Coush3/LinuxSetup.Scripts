@@ -199,8 +199,122 @@ guest ok = yes
             except subprocess.CalledProcessError as e:
                 print(f"エラー: GitHub CLIのインストールに失敗しました: {e}")
 
+    elif function_id == "samba_delete_share":
+        delete_samba_share()
+
     else:
         print(f"未定義の機能IDです: {function_id}")
+
+def delete_samba_share():
+    smb_conf_path = "/etc/samba/smb.conf"
+    shares = []
+    current_share_name = None
+    share_block_start_line = -1
+
+    try:
+        with open(smb_conf_path, "r") as f:
+            lines = f.readlines()
+
+        # 共有セクションを解析
+        for i, line in enumerate(lines):
+            stripped_line = line.strip()
+            if stripped_line.startswith("[") and stripped_line.endswith("]"):
+                # 新しいセクションの開始
+                if current_share_name:
+                    # 前の共有セクションを保存
+                    shares.append({
+                        "name": current_share_name,
+                        "start_line": share_block_start_line,
+                        "end_line": i - 1 # 現在のセクションの1つ前の行が終了行
+                    })
+                current_share_name = stripped_line[1:-1]
+                share_block_start_line = i
+            elif current_share_name and i == len(lines) - 1:
+                # ファイルの終わりに達した場合、最後の共有セクションを保存
+                shares.append({
+                    "name": current_share_name,
+                    "start_line": share_block_start_line,
+                    "end_line": i
+                })
+
+        # 最後の共有セクションがファイル末尾で終わる場合を考慮
+        if current_share_name and not shares or (shares and shares[-1]["name"] != current_share_name):
+             shares.append({
+                "name": current_share_name,
+                "start_line": share_block_start_line,
+                "end_line": len(lines) - 1
+            })
+
+        # globalセクションを除外
+        shares = [s for s in shares if s["name"].lower() != "global"]
+
+        if not shares:
+            print("smb.confに削除可能な共有設定が見つかりませんでした。")
+            return
+
+        # cursesで共有を選択させる
+        selected_share_index = curses.wrapper(select_share_menu, shares)
+
+        if selected_share_index is not None:
+            selected_share = shares[selected_share_index]
+            print(f"共有 '{selected_share['name']}' を削除します。")
+
+            # 選択された共有の行を除外して新しい内容を作成
+            new_lines = []
+            for i, line in enumerate(lines):
+                if not (selected_share["start_line"] <= i <= selected_share["end_line"]):
+                    new_lines.append(line)
+
+            # smb.confを上書き
+            # sudo権限でファイルを書き込むため、teeコマンドを使用
+            temp_smb_conf_content = "".join(new_lines)
+            subprocess.run(f'echo "{temp_smb_conf_content}" | sudo tee {smb_conf_path}', shell=True, check=True)
+            print("smb.confから共有設定を削除しました。")
+
+            # Sambaサービスを再起動
+            print("Sambaサービスを再起動します...")
+            subprocess.run("sudo systemctl restart smbd", shell=True, check=True)
+            print("Sambaサービスを再起動しました。")
+        else:
+            print("共有の削除をキャンセルしました。")
+
+    except FileNotFoundError:
+        print(f"エラー: {smb_conf_path} が見つかりません。Sambaがインストールされていない可能性があります。")
+    except Exception as e:
+        print(f"エラーが発生しました: {e}")
+
+def select_share_menu(stdscr, shares):
+    curses.curs_set(0)
+    stdscr.nodelay(0)
+    stdscr.timeout(-1)
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
+    current_row = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "削除するSamba共有を選択してください:")
+        stdscr.addstr(1, 0, "=" * 30)
+
+        for i, share in enumerate(shares):
+            if i == current_row:
+                stdscr.addstr(i + 3, 0, f"> {share['name']}", curses.color_pair(1))
+            else:
+                stdscr.addstr(i + 3, 0, f"  {share['name']}")
+        
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP:
+            current_row = (current_row - 1) % len(shares)
+        elif key == curses.KEY_DOWN:
+            current_row = (current_row + 1) % len(shares)
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            return current_row
+        elif key == 27: # ESCキー
+            return None
 
 if __name__ == "__main__":
     main()
