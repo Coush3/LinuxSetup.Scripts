@@ -52,6 +52,20 @@ EOF
     chmod +x "$SCRIPT_DIR/update"
     echo "'update' に実行権限を付与しました。"
 
+    # 5.1. git pull を実行する pull スクリプトを作成
+    echo "更新スクリプト 'pull' を作成します..."
+    cat <<'EOF' > "$SCRIPT_DIR/pull"
+#!/bin/bash
+# このスクリプト自身のディレクトリに移動し、git pullを実行
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+cd "$SCRIPT_DIR"
+git pull
+EOF
+
+    # 5.2. pull スクリプトに実行権限を付与
+    chmod +x "$SCRIPT_DIR/pull"
+    echo "'pull' に実行権限を付与しました。"
+
     # 6. webmenu.py を実行する webmenu スクリプトを作成
     echo "起動スクリプト 'webmenu' を作成します..."
     cat <<'EOF' > "$SCRIPT_DIR/webmenu"
@@ -73,7 +87,7 @@ EOF
 
     # ホームディレクトリにシンボリックリンクを作成するかの確認
     echo
-    read -p "ホームディレクトリ (~/) に 'menu' と 'webmenu' のショートカットを作成しますか？ (y/N): " answer
+    read -p "ホームディレクトリ (~/) に 'menu', 'webmenu', 'pull' のショートカットを作成しますか？ (y/N): " answer
     case ${answer:0:1} in
         y|Y )
             echo "ショートカットを作成します..."
@@ -91,7 +105,14 @@ EOF
                 ln -s "$SCRIPT_DIR/webmenu" "$HOME/webmenu"
                 echo "~/webmenu を作成しました。"
             fi
-            echo "今後はターミナルのどこからでも 'menu' または 'webmenu' コマンドで起動できます。"
+            # pull
+            if [ -f "$HOME/pull" ]; then
+                echo "警告: ~/pull は既に存在します。上書きはしませんでした。"
+            else
+                ln -s "$SCRIPT_DIR/pull" "$HOME/pull"
+                echo "~/pull を作成しました。"
+            fi
+            echo "今後はターミナルのどこからでも 'menu', 'webmenu', 'pull' コマンドで起動できます。"
         ;;
         * )
             echo "ショートカットは作成しませんでした。"
