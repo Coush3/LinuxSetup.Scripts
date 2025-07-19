@@ -653,7 +653,7 @@ guest ok = yes
         elif function_id == "stop_vscode_web_server":
             print("VS Code Webサーバーを停止します...")
             try:
-                result = subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
+                result = subprocess.run("pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
                 if result.returncode == 0 or result.returncode == -15:
                     print("VS Code Webサーバーを停止しました。")
                 elif result.returncode == 1: # pkill returns 1 if no processes were matched
@@ -665,6 +665,17 @@ guest ok = yes
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
                 print(f"詳細: {e}")
+        elif function_id == "show_vscode_web_server_log":
+            print("VS Code Webサーバーのログを表示します...")
+            log_file_path = "/tmp/vscode_web_server.log"
+            try:
+                if os.path.exists(log_file_path):
+                    with open(log_file_path, 'r') as f:
+                        print(f.read())
+                else:
+                    print("ログファイルが見つかりません。")
+            except Exception as e:
+                print(f"エラーが発生しました: {e}")
         elif function_id == "code_server_start_manual":
             print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
             try:

@@ -65,6 +65,9 @@ menu:
           - id: stop_vscode_web_server
             title: VS Code Webサーバーを停止
             description: 起動中のVS Code Webサーバーを停止します。
+          - id: show_vscode_web_server_log
+            title: VS Code Webサーバーのログを表示
+            description: VS Code Webサーバーのログファイルの内容を表示します。
           - id: ufw_allow_8000
             title: 8000ポートを開放
             description: VS Code Webサーバーが使用する8000ポートをufwで開放します。
