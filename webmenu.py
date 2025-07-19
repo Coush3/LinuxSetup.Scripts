@@ -41,7 +41,9 @@ app.secret_key = secrets.token_hex(16) # セッション管理のためのシー
 
 # menu.yaml を読み込む関数
 def load_menu_data():
-    with open("menu.yaml", "r", encoding="utf-8") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    menu_yaml_path = os.path.join(script_dir, "menu.yaml")
+    with open(menu_yaml_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 # メニュー項目に状態を追加する再帰関数
