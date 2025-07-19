@@ -519,7 +519,7 @@ guest ok = yes
                 if os.path.exists(log_file_path):
                     with open(log_file_path, 'r') as f:
                         log_content = f.read()
-                        match = re.search(r"Web UI available at (http://[0-9a-fA-F\.:]+:[0-9]+(?:/?tkn=[a-f0-9-]+)?)", log_content)
+                        match = re.search(r"Web UI available at (http://[0-9a-fA-F\.:]+:[0-9]+\?tkn=[a-f0-9-]+)", log_content)
                         if match:
                             print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
                         else:
