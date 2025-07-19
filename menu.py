@@ -494,7 +494,7 @@ guest ok = yes
                 subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
 
                 # rootユーザーとしてcode serve-webをフォアグラウンドで実行
-                command = "code serve-web --host 0.0.0.0 --no-sandbox --user-data-dir /root/.vscode-server-data --extensions-dir /root/.vscode-server-extensions"
+                command = "code serve-web --host 0.0.0.0 --server-data-dir /root/.vscode-server-data"
                 result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
                 print(result.stderr)
