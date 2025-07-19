@@ -21,33 +21,71 @@ def show_menu(stdscr):
     curses.curs_set(0)
     stdscr.nodelay(0)
     stdscr.timeout(-1)
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     # メニューデータの読み込み
-    with open("menu.json", "r", encoding="utf-8") as f:
-        menu_data = json.load(f)
+    with open("menu.yaml", "r", encoding="utf-8") as f:
+        menu_data = yaml.safe_load(f)
     
-    menu_items = menu_data["menu"]
-    current_row = 0
+    # メニュー階層を管理するスタック
+    menu_stack = [menu_data["menu"]]
+    # 選択中の行を管理するスタック
+    row_stack = [0]
+    # パンくずリストのためのタイトルスタック
+    title_stack = ["Home"]
 
     while True:
         stdscr.clear()
-        for i, item in enumerate(menu_items):
+        
+        # パンくずリストの表示
+        breadcrumb = " > ".join(title_stack)
+        stdscr.addstr(0, 0, breadcrumb)
+        stdscr.addstr(1, 0, "=" * (len(breadcrumb) + 4))
+
+        # 現在のメニュー項目を取得
+        current_menu_items = menu_stack[-1]
+        current_row = row_stack[-1]
+
+        for i, item in enumerate(current_menu_items):
             if i == current_row:
-                stdscr.addstr(i, 0, f"> {item['title']}", curses.A_REVERSE)
+                stdscr.addstr(i + 3, 0, f"> {item['title']}", curses.color_pair(1))
             else:
-                stdscr.addstr(i, 0, f"  {item['title']}")
+                stdscr.addstr(i + 3, 0, f"  {item['title']}")
+        
+        # 説明の表示
+        description = current_menu_items[current_row].get('description', '')
+        stdscr.addstr(len(current_menu_items) + 5, 0, description)
+        
         stdscr.refresh()
 
         key = stdscr.getch()
+        
+        current_row = row_stack[-1]
 
         if key == curses.KEY_UP:
-            current_row = (current_row - 1) % len(menu_items)
+            row_stack[-1] = (current_row - 1) % len(current_menu_items)
         elif key == curses.KEY_DOWN:
-            current_row = (current_row + 1) % len(menu_items)
+            row_stack[-1] = (current_row + 1) % len(current_menu_items)
         elif key == curses.KEY_ENTER or key in [10, 13]:
-            return menu_items[current_row]["id"]
+            selected_item = current_menu_items[current_row]
+            if "items" in selected_item:
+                # サブメニューに移動
+                menu_stack.append(selected_item["items"])
+                row_stack.append(0)
+                title_stack.append(selected_item["title"])
+            elif "id" in selected_item:
+                # 実行するIDを返す
+                return selected_item["id"]
         elif key == 27: # ESCキー
-            return None
+            if len(menu_stack) > 1:
+                # 親メニューに戻る
+                menu_stack.pop()
+                row_stack.pop()
+                title_stack.pop()
+            else:
+                # ルートメニューでESCなら終了
+                return None
 
 
 def execute_function(function_id):
