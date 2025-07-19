@@ -31,8 +31,13 @@ def is_service_active(service_name):
         return False
 
 def is_process_running(process_name):
+    if not process_name:
+        return False
+    # pgrep -f が自分自身を検知してしまうのを防ぐためのトリック
+    # 例: "code serve-web" -> "[c]ode serve-web"
+    pgrep_pattern = f"[{process_name[0]}]{process_name[1:]}"
     try:
-        subprocess.run(f"pgrep -f '{process_name}'", shell=True, check=True, capture_output=True)
+        subprocess.run(f"pgrep -f '{pgrep_pattern}'", shell=True, check=True, capture_output=True)
         return True
     except subprocess.CalledProcessError:
         return False
