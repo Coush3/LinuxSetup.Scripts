@@ -38,6 +38,12 @@ menu:
           - id: code_server_disable_and_stop_service
             title: Code Serverサービスを停止し削除
             description: Code Serverのsystemdサービスを停止し、登録を解除します。
+          - id: code_server_show_password
+            title: Code Serverパスワード表示
+            description: Code Serverの現在のパスワードを表示します。
+          - id: code_server_set_password
+            title: Code Serverパスワード設定
+            description: Code Serverのパスワードを設定します。
   - title: ユーティリティ
     description: その他の便利なツール
     items:

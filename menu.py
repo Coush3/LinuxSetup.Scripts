@@ -262,7 +262,7 @@ guest ok = yes
         elif function_id == "code_server_start_manual":
             print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
             try:
-                subprocess.run("code-server", shell=True, check=True)
+                subprocess.run("code-server --bind-addr 0.0.0.0:8080", shell=True, check=True)
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
         elif function_id == "code_server_enable_and_start_service":
@@ -278,6 +278,41 @@ guest ok = yes
                 subprocess.run("sudo systemctl disable --now code-server@$USER", shell=True, check=True)
                 print("Code Serverサービスが停止され、登録解除されました。")
             except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "code_server_show_password":
+            print("Code Serverのパスワードを表示します...")
+            try:
+                config_path = "/root/.config/code-server/config.yaml"
+                if os.path.exists(config_path):
+                    with open(config_path, "r") as f:
+                        config = yaml.safe_load(f)
+                        if "password" in config:
+                            print(f"現在のパスワード: {config["password"]}")
+                        else:
+                            print("config.yamlにパスワードが設定されていません。")
+                else:
+                    print("config.yamlが見つかりません。Code Serverがインストールされていないか、設定ファイルが作成されていません。")
+            except Exception as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "code_server_set_password":
+            print("Code Serverのパスワードを設定します...")
+            try:
+                config_path = "/root/.config/code-server/config.yaml"
+                if not os.path.exists(config_path):
+                    print("config.yamlが見つかりません。Code Serverがインストールされていないか、設定ファイルが作成されていません。")
+                    return
+
+                new_password = input_data.get("password") if input_data else None
+                if not new_password:
+                    new_password = input("新しいパスワードを入力してください: ")
+
+                with open(config_path, "r") as f:
+                    config = yaml.safe_load(f)
+                config["password"] = new_password
+                with open(config_path, "w") as f:
+                    yaml.safe_dump(config, f)
+                print("パスワードを設定しました。Code Serverを再起動してください。")
+            except Exception as e:
                 print(f"エラーが発生しました: {e}")
         else:
             print(f"未定義の機能IDです: {function_id}")
