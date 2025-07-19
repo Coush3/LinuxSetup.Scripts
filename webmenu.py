@@ -34,7 +34,7 @@ def login_required(view):
 # menu.py から execute_function をインポート
 # sys.path に現在のディレクトリを追加して、menu.py をモジュールとして認識させる
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from menu import execute_function, get_samba_shares
+from menu import execute_function, get_samba_shares, get_menu_item_status
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16) # セッション管理のためのシークレットキー
@@ -43,6 +43,14 @@ app.secret_key = secrets.token_hex(16) # セッション管理のためのシー
 def load_menu_data():
     with open("menu.yaml", "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+# メニュー項目に状態を追加する再帰関数
+def add_status_to_menu(menu_items):
+    for item in menu_items:
+        if 'id' in item:
+            item['status'] = get_menu_item_status(item['id'])
+        if 'items' in item:
+            add_status_to_menu(item['items'])
 
 @app.before_request
 def load_logged_in_user():
@@ -86,6 +94,7 @@ def index():
 @login_required
 def get_menu():
     menu_data = load_menu_data()
+    add_status_to_menu(menu_data['menu'])
     return jsonify(menu_data)
 
 @app.route('/api/execute', methods=['POST'])

@@ -153,6 +153,11 @@
             text-align: right;
             margin-top: 20px;
         }
+        .menu-item.disabled {
+            background-color: #3a404a;
+            color: #888;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -184,6 +189,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentMenu = [];
         let menuStack = [];
@@ -259,15 +265,33 @@
             currentMenu.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = 'menu-item';
+
+                const isDisabled = item.status && !item.status.active;
+                const reason = item.status && item.status.reason ? item.status.reason : '';
+
+                if (isDisabled) {
+                    li.classList.add('disabled');
+                    li.setAttribute('title', reason);
+                    li.setAttribute('data-bs-toggle', 'tooltip');
+                    li.setAttribute('data-bs-placement', 'top');
+                }
+
                 li.innerHTML = `
                     <div>
                         <div class="menu-item-title">${item.title}</div>
-                        <div class="menu-item-description">${item.description || ''}</div>
+                        <div class="menu-item-description">${item.description || ''} ${isDisabled ? `(${reason})` : ''}</div>
                     </div>
                 `;
-                li.addEventListener('click', () => onMenuItemClick(item, li));
+                if (!isDisabled) {
+                    li.addEventListener('click', () => onMenuItemClick(item, li));
+                }
                 menuList.appendChild(li);
             });
+            // ツールチップの初期化
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
         }
 
         function onMenuItemClick(item, element) {
