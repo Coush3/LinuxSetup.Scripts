@@ -690,14 +690,49 @@ guest ok = yes
         elif function_id == "code_server_enable_and_start_service":
             print("Code Serverをサービスとして登録し起動します...")
             try:
-                current_user = os.getlogin() # 現在のユーザー名を取得
-                result = subprocess.run(f"sudo systemctl enable --now code-server@{current_user}", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
+                # 実行ユーザーの特定 (sudoの場合も考慮)
+                current_user = os.environ.get('SUDO_USER') or os.getlogin()
+                
+                # ユーザーのsystemdサービスファイルパス
+                user_service_dir = os.path.expanduser(f"~{current_user}/.config/systemd/user")
+                user_service_file = os.path.join(user_service_dir, "code-server.service")
+
+                # システムサービスファイルパス
+                system_service_file = "/etc/systemd/system/code-server.service"
+
+                if not os.path.exists(user_service_file):
+                    print(f"エラー: Code Serverのユーザーサービスファイルが見つかりません: {user_service_file}")
+                    print("Code Serverが正しくインストールされているか確認してください。")
+                    return
+
+                # ユーザーサービスファイルを読み込み、User/Groupを設定してシステムサービスとしてコピー
+                with open(user_service_file, 'r') as f:
+                    service_content = f.read()
+
+                # User=%i と Group=%i を実際のユーザー名に置き換える
+                # %i はインスタンス名 (ユーザー名) に置き換えられるが、システムサービスでは明示的に指定
+                service_content = service_content.replace("User=%i", f"User={current_user}")
+                service_content = service_content.replace("Group=%i", f"Group={current_user}")
+
+                # システムサービスとして書き込み
+                with open("/tmp/code-server.service.tmp", "w") as f:
+                    f.write(service_content)
+                subprocess.run(f"sudo mv /tmp/code-server.service.tmp {system_service_file}", shell=True, check=True)
+                print(f"Code Serverサービスファイルを {system_service_file} にコピーしました。")
+
+                # systemdデーモンをリロード
+                subprocess.run("sudo systemctl daemon-reload", shell=True, check=True)
+                print("systemdデーモンをリロードしました。")
+
+                # サービスを有効化して起動
+                subprocess.run("sudo systemctl enable --now code-server", shell=True, check=True)
                 print("Code Serverサービスが登録され、起動しました。")
+
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
-                print(f"標準出力: {e.stdout}")
-                print(f"標準エラー: {e.stderr}")
+                print(f"標準出力: {e.stdout}\n標準エラー: {e.stderr}")
+            except Exception as e:
+                print(f"予期せぬエラーが発生しました: {e}")
         elif function_id == "code_server_disable_and_stop_service":
             print("Code Serverサービスを停止し削除します...")
             try:
