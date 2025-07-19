@@ -358,38 +358,9 @@ guest ok = yes
         elif function_id == "install_vscode_desktop":
             print("Visual Studio Code (Desktop) のインストールを開始します...")
             try:
-                # vscode ユーザーが存在しない場合、作成する
-                try:
-                    result = subprocess.run("id -u vscode", shell=True, check=True, capture_output=True, text=True)
-                    print(result.stdout)
-                    print("ユーザー 'vscode' は既に存在します。")
-                except subprocess.CalledProcessError:
-                    print("ユーザー 'vscode' を作成します...")
-                    result = subprocess.run("sudo useradd -m -s /bin/bash vscode", shell=True, check=True, capture_output=True, text=True)
-                    print(result.stdout)
-                    print("ユーザー 'vscode' を作成しました。")
-
-                # VS CodeのGPGキーをインポート
-                result = subprocess.run("wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
-                result = subprocess.run("sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
-                # VS Codeのリポジトリを追加
-                result = subprocess.run("sudo sh -c 'echo \"deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
                 # パッケージリストを更新してVS Codeをインストール
                 result = subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
-
-                # vscode ユーザーのホームディレクトリの所有権を設定
-                print("ユーザー 'vscode' のホームディレクトリの所有権を設定します...")
-                subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True)
-                print("所有権を設定しました。")
-
-                # vscode ユーザーとして一度codeコマンドを実行し、初期設定を完了させる
-                print("ユーザー 'vscode' としてVS Codeの初期設定を行います...")
-                subprocess.run("sudo -u vscode code --version", shell=True, check=True, capture_output=True, text=True)
-                print("VS Codeの初期設定が完了しました。")
 
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
             except subprocess.CalledProcessError as e:
@@ -497,7 +468,7 @@ guest ok = yes
                 subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
 
                 # vscode ユーザーとしてcode serve-webをバックグラウンドで実行し、ログをファイルにリダイレクト
-                command = f"sudo -u vscode nohup code serve-web --host 0.0.0.0 > {log_file_path} 2>&1 &"
+                command = "nohup code serve-web --host 0.0.0.0 --no-sandbox --user-data-dir /root/.vscode-server-data --extensions-dir /root/.vscode-server-extensions > {log_file_path} 2>&1 &"
                 subprocess.run(command, shell=True, check=True)
 
                 print(f"VS Code Webサーバーをバックグラウンドで起動しました。ログは {log_file_path} を確認してください。")
