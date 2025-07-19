@@ -27,6 +27,35 @@
 1.  `setup.sh` を実行して、必要な依存関係をインストールし、`menu` コマンドを設定します。
 2.  CLIから `menu` コマンドを実行するか、`webmenu.py` を起動してWebブラウザからアクセスします。
 
+## インストール
+
+### Gitのインストール
+
+Linuxディストリビューションに応じて、以下のコマンドでGitをインストールできます。
+
+*   **Debian/Ubuntu:**
+    ```bash
+    sudo apt update
+    sudo apt install git
+    ```
+*   **Fedora:**
+    ```bash
+    sudo dnf install git
+    ```
+*   **CentOS/RHEL:**
+    ```bash
+    sudo yum install git
+    ```
+
+### リポジトリのクローン
+
+Gitがインストールされたら、以下のコマンドでこのリポジトリをクローンできます。
+
+```bash
+git clone https://github.com/Coush3/LinuxSetup.Scripts.git
+cd LinuxSetup.Scripts
+```
+
 ## 開発状況
 
 現在、CLIとWebインターフェースの両方で基本的な機能が実装されています。今後のタスクとして、CLIインタラクティブ入力の再調整、CLI引数解析の強化、Webメニューのセキュリティ強化、エラーハンドリングとユーザーフィードバックの改善が挙げられます。
