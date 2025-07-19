@@ -194,11 +194,9 @@ def show_menu(stdscr):
 
             if "items" in selected_item:
                 # サブメニューに移動
-                menu_stack.append(current_menu_items)
-                row_stack.append(current_row)
                 title_stack.append(selected_item["title"])
-                current_menu_items = selected_item["items"]
-                row_stack[-1] = 0 # 新しいメニューの選択をリセット
+                menu_stack.append(selected_item["items"])
+                row_stack.append(0)
             elif "id" in selected_item:
                 # 実行するIDを返す
                 return selected_item["id"]
@@ -212,24 +210,6 @@ def show_menu(stdscr):
                 # ルートメニューでESCなら終了
                 return None
 
-
-def execute_function(function_id, input_data=None):
-    # 標準出力をキャプチャするための設定
-    old_stdout = sys.stdout
-    redirected_output = io.StringIO()
-    sys.stdout = redirected_output
-
-    try:
-        if function_id == "system_update":
-            print("システムアップデートを実行します...")
-            try:
-                result = subprocess.run("sudo apt update && sudo apt upgrade -y", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
-                print("システムアップデートが完了しました。")
-            except subprocess.CalledProcessError as e:
-                print(f"エラーが発生しました: {e}")
-                print(f"標準出力: {e.stdout}")
-                print(f"標準エラー: {e.stderr}")
 
 def get_menu_item_status(item_id):
     """メニュー項目の活性・非活性状態を判断する"""
@@ -269,8 +249,24 @@ def get_menu_item_status(item_id):
 
     return status
 
-def execute_function(function_id, input_data=None):
 
+def execute_function(function_id, input_data=None):
+    # 標準出力をキャプチャするための設定
+    old_stdout = sys.stdout
+    redirected_output = io.StringIO()
+    sys.stdout = redirected_output
+
+    try:
+        if function_id == "system_update":
+            print("システムアップデートを実行します...")
+            try:
+                result = subprocess.run("sudo apt update && sudo apt upgrade -y", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                print("システムアップデートが完了しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "ufw_allow_8080":
             print("8080ポートを開放します...")
             try:
@@ -739,49 +735,23 @@ guest ok = yes
     
     return redirected_output.getvalue() # キャプチャした出力を返す
 
+
 def get_samba_shares():
     """smb.confから共有設定のリストを取得する（curses非依存）"""
     smb_conf_path = "/etc/samba/smb.conf"
     shares = []
-    current_share_name = None
-    share_block_start_line = -1
-
     try:
         with open(smb_conf_path, "r") as f:
-            lines = f.readlines()
-
-        # 共有セクションを解析
-        for i, line in enumerate(lines):
-            stripped_line = line.strip()
-            if stripped_line.startswith("[") and stripped_line.endswith("]"):
-                # 新しいセクションの開始
-                if current_share_name:
-                    # 前の共有セクションを保存
-                    shares.append({
-                        "name": current_share_name,
-                        "start_line": share_block_start_line,
-                        "end_line": i - 1 # 現在のセクションの1つ前の行が終了行
-                    })
-                current_share_name = stripped_line[1:-1]
-                share_block_start_line = i
-            elif current_share_name and i == len(lines) - 1:
-                # ファイルの終わりに達した場合、最後の共有セクションを保存
-                shares.append({
-                    "name": current_share_name,
-                    "start_line": share_block_start_line,
-                    "end_line": i
-                })
-
-        # 最後の共有セクションがファイル末尾で終わる場合を考慮
-        if current_share_name and not shares or (shares and shares[-1]["name"] != current_share_name):
-             shares.append({
-                "name": current_share_name,
-                "start_line": share_block_start_line,
-                "end_line": len(lines) - 1
-            })
-
-        # globalセクションを除外
-        shares = [s for s in shares if s["name"].lower() != "global"]
+            content = f.read()
+        
+        # 正規表現で共有セクションを抽出
+        # [share_name]形式のセクション名をキャプチャする
+        # ただし、[global]や[printers]などは除外
+        share_sections = re.findall(r"^\s*\[((?!global|printers|print\$)[^\]]+)\]", content, re.MULTILINE)
+        
+        for share_name in share_sections:
+            shares.append({"name": share_name})
+            
         return shares
 
     except FileNotFoundError:
@@ -795,24 +765,25 @@ def delete_samba_share(share_name_to_delete):
     
     try:
         with open(smb_conf_path, "r") as f:
-            lines = f.readlines()
+            content = f.read()
 
-        shares = get_samba_shares()
-        selected_share = next((s for s in shares if s["name"] == share_name_to_delete), None)
+        # 正規表現で指定された共有セクションを検索
+        # セクションの開始から次のセクションの開始までをマッチさせる
+        pattern = re.compile(r"^\s*\[" + re.escape(share_name_to_delete) + r"\](.*?)(?=\n^\s*\[|$)", re.DOTALL | re.MULTILINE)
+        
+        match = pattern.search(content)
 
-        if selected_share:
-            print(f"共有 '{selected_share['name']}' を削除します。")
+        if match:
+            print(f"共有 '{share_name_to_delete}' を削除します。")
 
-            # 選択された共有の行を除外して新しい内容を作成
-            new_lines = []
-            for i, line in enumerate(lines):
-                if not (selected_share["start_line"] <= i <= selected_share["end_line"]):
-                    new_lines.append(line)
+            # マッチした部分を空文字列に置換
+            new_content = pattern.sub("", content)
 
             # smb.confを上書き
-            # sudo権限でファイルを書き込むため、teeコマンドを使用
-            temp_smb_conf_content = "".join(new_lines)
-            subprocess.run(f'echo "{temp_smb_conf_content}" | sudo tee {smb_conf_path}', shell=True, check=True)
+            with open("/tmp/smb.conf.tmp", "w") as f:
+                f.write(new_content)
+            
+            subprocess.run(f'sudo mv /tmp/smb.conf.tmp {smb_conf_path}', shell=True, check=True)
             print("smb.confから共有設定を削除しました。")
 
             # Sambaサービスを再起動
@@ -827,48 +798,7 @@ def delete_samba_share(share_name_to_delete):
     except Exception as e:
         print(f"エラーが発生しました: {e}")
 
-def select_share_menu(stdscr, shares):
-    curses.curs_set(0)
-    stdscr.nodelay(0)
-    stdscr.timeout(-1)
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
-    current_row = 0
-
-    while True:
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
-
-        title = "削除するSamba共有を選択してください:"
-        stdscr.addstr(0, 0, title)
-        stdscr.addstr(1, 0, "=" * len(title))
-
-        for i, share in enumerate(shares):
-            display_name = share["name"]
-            x = 0
-            y = i + 3
-            if i == current_row:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, f"> {display_name}")
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(y, x, f"  {display_name}")
-        
-        stdscr.refresh()
-
-        key = stdscr.getch()
-
-        if key == curses.KEY_UP:
-            current_row = (current_row - 1) % len(shares)
-        elif key == curses.KEY_DOWN:
-            current_row = (current_row + 1) % len(shares)
-        elif key == curses.KEY_ENTER or key in [10, 13]:
-            return shares[current_row]["name"]
-        elif key == 27: # ESCキー
-            return None
-
-# select_share_menu は curses 依存のため削除
 
 if __name__ == "__main__":
     main()
