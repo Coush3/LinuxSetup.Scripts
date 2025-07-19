@@ -11,7 +11,7 @@ if [ ! -f "$LOCK_FILE" ]; then
     # 1. 必要なPythonモジュールをインストール
     echo "必要なモジュール (PyYAML) をインストールします..."
     # pipがシステムにインストールされている場所に依存しないようにpython3 -m pipを使用
-    python3 -m pip install PyYAML
+    python3 -m pip install PyYAML Flask
     if [ $? -ne 0 ]; then
         echo "エラー: モジュールのインストールに失敗しました。"
         exit 1
@@ -23,7 +23,7 @@ if [ ! -f "$LOCK_FILE" ]; then
 #!/bin/bash
 # このスクリプト自身のディレクトリを取得し、そこにあるmain.pyを実行
 SCRIPT_DIR=\$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-python3 "$SCRIPT_DIR/main.py" "$@"
+python3 "$SCRIPT_DIR/menu.py" "$@"
 EOF
 
     # 3. menu スクリプトに実行権限を付与

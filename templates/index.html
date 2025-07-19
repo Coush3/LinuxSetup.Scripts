@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Setup Menu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .breadcrumb {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .menu-list {
+            list-style: none;
+            padding: 0;
+        }
+        .menu-item {
+            background-color: #e9ecef;
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-item:hover {
+            background-color: #d6dbe0;
+        }
+        .menu-item.selected {
+            background-color: #007bff;
+            color: white;
+        }
+        .menu-item-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .menu-item-description {
+            font-size: 0.85em;
+            color: #555;
+            margin-top: 5px;
+        }
+        .menu-item.selected .menu-item-description {
+            color: #e0e0e0;
+        }
+        .output-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e2e6ea;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #333;
+            color: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .input-prompt {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        .input-prompt label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-prompt input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-prompt button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .input-prompt button:hover {
+            background-color: #218838;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .execute-button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-left: 10px;
+        }
+        .execute-button:hover {
+            background-color: #0056b3;
+        }
+        .button-group {
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Linux Setup Menu</h1>
+        <div class="breadcrumb" id="breadcrumb">Home</div>
+        <ul class="menu-list" id="menuList"></ul>
+
+        <div class="button-group">
+            <button class="back-button" id="backButton" style="display: none;">戻る</button>
+            <button class="execute-button" id="executeButton" style="display: none;">実行</button>
+        </div>
+
+        <div class="input-prompt" id="inputPrompt" style="display: none;">
+            <label for="sharePathInput">共有したいフォルダのフルパスを入力してください:</label>
+            <input type="text" id="sharePathInput" placeholder="例: /home/user/share">
+            <button id="submitSharePath">設定</button>
+        </div>
+
+        <div class="input-prompt" id="deleteSharePrompt" style="display: none;">
+            <label for="deleteShareSelect">削除するSamba共有を選択してください:</label>
+            <select id="deleteShareSelect"></select>
+            <button id="submitDeleteShare">削除</button>
+        </div>
+
+        <div class="output-section" id="outputSection" style="display: none;">
+            <h2>実行結果</h2>
+            <pre id="outputContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        let currentMenu = [];
+        let menuStack = [];
+        let breadcrumbStack = ['Home'];
+
+        const menuList = document.getElementById('menuList');
+        const breadcrumbDiv = document.getElementById('breadcrumb');
+        const outputSection = document.getElementById('outputSection');
+        const outputContent = document.getElementById('outputContent');
+        const inputPrompt = document.getElementById('inputPrompt');
+        const sharePathInput = document.getElementById('sharePathInput');
+        const submitSharePathButton = document.getElementById('submitSharePath');
+        const deleteSharePrompt = document.getElementById('deleteSharePrompt');
+        const deleteShareSelect = document.getElementById('deleteShareSelect');
+        const submitDeleteShareButton = document.getElementById('submitDeleteShare');
+        const backButton = document.getElementById('backButton');
+        const executeButton = document.getElementById('executeButton');
+
+        let selectedFunctionId = null;
+        let selectedMenuItemElement = null;
+
+        async function fetchMenuData() {
+            const response = await fetch('/api/menu');
+            const data = await response.json();
+            currentMenu = data.menu;
+            renderMenu();
+        }
+
+        function renderMenu() {
+            menuList.innerHTML = '';
+            breadcrumbDiv.textContent = breadcrumbStack.join(' > ');
+            outputSection.style.display = 'none';
+            inputPrompt.style.display = 'none';
+            deleteSharePrompt.style.display = 'none';
+            executeButton.style.display = 'none';
+
+            if (menuStack.length > 0) {
+                backButton.style.display = 'inline-block';
+            } else {
+                backButton.style.display = 'none';
+            }
+
+            currentMenu.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'menu-item';
+                li.innerHTML = `
+                    <div>
+                        <div class="menu-item-title">${item.title}</div>
+                        <div class="menu-item-description">${item.description || ''}</div>
+                    </div>
+                `;
+                li.addEventListener('click', () => onMenuItemClick(item, li));
+                menuList.appendChild(li);
+            });
+        }
+
+        function onMenuItemClick(item, element) {
+            // 選択状態の解除
+            if (selectedMenuItemElement) {
+                selectedMenuItemElement.classList.remove('selected');
+            }
+            // 新しい選択状態の設定
+            selectedMenuItemElement = element;
+            selectedMenuItemElement.classList.add('selected');
+
+            if (item.items) {
+                // サブメニューがある場合
+                menuStack.push(currentMenu);
+                breadcrumbStack.push(item.title);
+                currentMenu = item.items;
+                renderMenu();
+            } else if (item.id) {
+                // 実行可能な項目
+                selectedFunctionId = item.id;
+                executeButton.style.display = 'inline-block';
+                outputSection.style.display = 'none'; // 実行前に出力をクリア
+                outputContent.textContent = '';
+
+                // 特定のIDに対する入力プロンプト表示
+                if (item.id === 'samba_install_and_share') {
+                    inputPrompt.style.display = 'block';
+                    deleteSharePrompt.style.display = 'none';
+                } else if (item.id === 'samba_delete_share') {
+                    inputPrompt.style.display = 'none';
+                    deleteSharePrompt.style.display = 'block';
+                    fetchSambaShares();
+                } else {
+                    inputPrompt.style.display = 'none';
+                    deleteSharePrompt.style.display = 'none';
+                }
+            }
+        }
+
+        backButton.addEventListener('click', () => {
+            if (menuStack.length > 0) {
+                currentMenu = menuStack.pop();
+                breadcrumbStack.pop();
+                selectedFunctionId = null; // 戻るボタンで選択状態をリセット
+                if (selectedMenuItemElement) {
+                    selectedMenuItemElement.classList.remove('selected');
+                    selectedMenuItemElement = null;
+                }
+                renderMenu();
+            }
+        });
+
+        executeButton.addEventListener('click', async () => {
+            if (!selectedFunctionId) return;
+
+            let inputData = {};
+            if (selectedFunctionId === 'samba_install_and_share') {
+                inputData = { share_path: sharePathInput.value };
+            } else if (selectedFunctionId === 'samba_delete_share') {
+                inputData = { share_name: deleteShareSelect.value };
+            }
+
+            outputSection.style.display = 'block';
+            outputContent.textContent = '実行中...';
+
+            try {
+                const response = await fetch('/api/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ function_id: selectedFunctionId, input_data: inputData })
+                });
+                const result = await response.json();
+                outputContent.textContent = result.output || result.error || 'エラーが発生しました。';
+            } catch (error) {
+                outputContent.textContent = `通信エラー: ${error.message}`;
+            }
+        });
+
+        submitSharePathButton.addEventListener('click', () => {
+            // 実行ボタンが押されたときに処理されるため、ここでは何もしない
+            // executeButton.click();
+        });
+
+        submitDeleteShareButton.addEventListener('click', () => {
+            // 実行ボタンが押されたときに処理されるため、ここでは何もしない
+            // executeButton.click();
+        });
+
+        async function fetchSambaShares() {
+            try {
+                const response = await fetch('/api/samba_shares');
+                const shares = await response.json();
+                deleteShareSelect.innerHTML = '';
+                if (shares.length > 0) {
+                    shares.forEach(share => {
+                        const option = document.createElement('option');
+                        option.value = share.name;
+                        option.textContent = share.name;
+                        deleteShareSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '共有が見つかりません';
+                    deleteShareSelect.appendChild(option);
+                    submitDeleteShareButton.disabled = true;
+                }
+            } catch (error) {
+                console.error('Samba共有の取得に失敗しました:', error);
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '共有の取得に失敗しました';
+                deleteShareSelect.appendChild(option);
+                submitDeleteShareButton.disabled = true;
+            }
+        }
+
+        fetchMenuData();
+    </script>
+</body>
+</html>
