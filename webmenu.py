@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request
 import yaml
 import sys
 import os
+import socket # 追加
 
 # menu.py から execute_function をインポート
 # sys.path に現在のディレクトリを追加して、menu.py をモジュールとして認識させる
@@ -17,7 +18,8 @@ def load_menu_data():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    hostname = socket.gethostname() # ホスト名を取得
+    return render_template('index.html', hostname=hostname) # テンプレートにホスト名を渡す
 
 @app.route('/api/menu')
 def get_menu():

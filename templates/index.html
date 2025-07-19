@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux Setup Menu</title>
+    <title>Hostname Setup Menu</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #282c34; /* Dark background */
+            color: #abb2bf; /* Light text */
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #fff;
+            background-color: #3a404a; /* Slightly lighter dark background */
             padding: 20px 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Darker shadow */
         }
         h1 {
-            color: #0056b3;
+            color: #61afef; /* Lighter blue for heading */
             text-align: center;
             margin-bottom: 25px;
         }
         .breadcrumb {
             font-size: 0.9em;
-            color: #666;
+            color: #888; /* Lighter gray */
             margin-bottom: 15px;
+        }
+        .breadcrumb a {
+            color: #61afef; /* Blue for links */
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
         }
         .menu-list {
             list-style: none;
             padding: 0;
         }
         .menu-item {
-            background-color: #e9ecef;
+            background-color: #4b5263; /* Darker item background */
             margin-bottom: 10px;
             padding: 12px 15px;
             border-radius: 5px;
@@ -43,12 +50,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #abb2bf; /* Light text */
         }
         .menu-item:hover {
-            background-color: #d6dbe0;
+            background-color: #5c6370; /* Lighter on hover */
         }
         .menu-item.selected {
-            background-color: #007bff;
+            background-color: #61afef; /* Blue for selected */
             color: white;
         }
         .menu-item-title {
@@ -57,7 +65,7 @@
         }
         .menu-item-description {
             font-size: 0.85em;
-            color: #555;
+            color: #888; /* Lighter gray */
             margin-top: 5px;
         }
         .menu-item.selected .menu-item-description {
@@ -66,15 +74,16 @@
         .output-section {
             margin-top: 30px;
             padding: 15px;
-            background-color: #e2e6ea;
+            background-color: #21252b; /* Darker output background */
             border-radius: 5px;
-            border: 1px solid #ced4da;
+            border: 1px solid #4b5263; /* Lighter border */
+            color: #abb2bf; /* Light text */
         }
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
-            background-color: #333;
-            color: #eee;
+            background-color: #1e2127; /* Even darker for code blocks */
+            color: #abb2bf; /* Light text */
             padding: 10px;
             border-radius: 5px;
             overflow-x: auto;
@@ -82,25 +91,29 @@
         .input-prompt {
             margin-top: 15px;
             padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background-color: #3a404a; /* Darker input background */
+            border: 1px solid #4b5263; /* Lighter border */
             border-radius: 5px;
+            color: #abb2bf; /* Light text */
         }
         .input-prompt label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #abb2bf; /* Light text */
         }
         .input-prompt input[type="text"] {
             width: calc(100% - 22px);
             padding: 8px 10px;
             margin-bottom: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #666; /* Lighter border */
             border-radius: 4px;
+            background-color: #282c34; /* Dark input field */
+            color: #abb2bf; /* Light text */
         }
         .input-prompt button {
-            background-color: #28a745;
-            color: white;
+            background-color: #98c379; /* Green for buttons */
+            color: #282c34; /* Dark text on button */
             padding: 8px 15px;
             border: none;
             border-radius: 4px;
@@ -108,10 +121,10 @@
             transition: background-color 0.2s ease;
         }
         .input-prompt button:hover {
-            background-color: #218838;
+            background-color: #7baf5a; /* Darker green on hover */
         }
         .back-button {
-            background-color: #6c757d;
+            background-color: #e06c75; /* Reddish for back button */
             color: white;
             padding: 8px 15px;
             border: none;
@@ -121,10 +134,10 @@
             margin-top: 20px;
         }
         .back-button:hover {
-            background-color: #5a6268;
+            background-color: #c2525c; /* Darker red on hover */
         }
         .execute-button {
-            background-color: #007bff;
+            background-color: #61afef; /* Blue for execute button */
             color: white;
             padding: 8px 15px;
             border: none;
@@ -134,7 +147,7 @@
             margin-left: 10px;
         }
         .execute-button:hover {
-            background-color: #0056b3;
+            background-color: #4a90e2; /* Darker blue on hover */
         }
         .button-group {
             text-align: right;
@@ -144,7 +157,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Linux Setup Menu</h1>
+        <h1>{{ hostname }} Setup Menu</h1>
         <div class="breadcrumb" id="breadcrumb">Home</div>
         <ul class="menu-list" id="menuList"></ul>
 
@@ -201,7 +214,33 @@
 
         function renderMenu() {
             menuList.innerHTML = '';
-            breadcrumbDiv.textContent = breadcrumbStack.join(' > ');
+            // パンくずリストの生成
+            breadcrumbDiv.innerHTML = '';
+            breadcrumbStack.forEach((title, index) => {
+                const span = document.createElement('span');
+                if (index > 0) {
+                    span.textContent = ' > ';
+                }
+                const a = document.createElement('a');
+                a.textContent = title;
+                a.href = '#'; // リンクとして機能させるため
+                a.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // クリックされた階層まで戻る
+                    menuStack.splice(index);
+                    breadcrumbStack.splice(index + 1);
+                    // Homeに戻る場合は、currentMenuを初期化
+                    if (index === 0) {
+                        fetchMenuData(); // Homeに戻る場合はAPIから再取得
+                    } else {
+                        currentMenu = menuStack.pop(); // 1つ前のメニューに戻る
+                        renderMenu();
+                    }
+                });
+                breadcrumbDiv.appendChild(span);
+                breadcrumbDiv.appendChild(a);
+            });
+
             outputSection.style.display = 'none';
             inputPrompt.style.display = 'none';
             deleteSharePrompt.style.display = 'none';
