@@ -736,14 +736,27 @@ guest ok = yes
         elif function_id == "code_server_disable_and_stop_service":
             print("Code Serverサービスを停止し削除します...")
             try:
-                current_user = os.getlogin() # 現在のユーザー名を取得
-                result = subprocess.run(f"sudo systemctl disable --now code-server@{current_user}", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
-                print("Code Serverサービスが停止され、登録解除されました。")
+                # システムサービスファイルパス
+                system_service_file = "/etc/systemd/system/code-server.service"
+
+                # サービスを停止し無効化
+                subprocess.run("sudo systemctl disable --now code-server", shell=True, check=True)
+                print("Code Serverサービスが停止され、無効化されました。")
+
+                # サービスファイルを削除
+                if os.path.exists(system_service_file):
+                    subprocess.run(f"sudo rm {system_service_file}", shell=True, check=True)
+                    print(f"Code Serverサービスファイルを削除しました: {system_service_file}")
+
+                # systemdデーモンをリロード
+                subprocess.run("sudo systemctl daemon-reload", shell=True, check=True)
+                print("systemdデーモンをリロードしました。")
+
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
-                print(f"標準出力: {e.stdout}")
-                print(f"標準エラー: {e.stderr}")
+                print(f"標準出力: {e.stdout}\n標準エラー: {e.stderr}")
+            except Exception as e:
+                print(f"予期せぬエラーが発生しました: {e}")
         elif function_id == "code_server_show_password":
             print("Code Serverのパスワードを表示します...")
             try:
