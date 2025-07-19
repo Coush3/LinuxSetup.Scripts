@@ -9,7 +9,15 @@ if [ ! -f "$LOCK_FILE" ]; then
     echo "初回セットアップを実行します..."
 
     # 1. 必要なPythonモジュールをインストール
-    echo "必要なモジュール (PyYAML) をインストールします..."
+    echo "python3-pipをインストールします..."
+    sudo apt update
+    sudo apt install -y python3-pip
+    if [ $? -ne 0 ]; then
+        echo "エラー: python3-pipのインストールに失敗しました。"
+        exit 1
+    fi
+
+    echo "必要なモジュール (PyYAML, Flask) をインストールします..."
     # pipがシステムにインストールされている場所に依存しないようにpython3 -m pipを使用
     python3 -m pip install PyYAML Flask
     if [ $? -ne 0 ]; then
