@@ -81,9 +81,9 @@ def main():
         print(captured_output)
     else:
         # 引数がなければ、メニューを表示
-        function_id = curses.wrapper(show_menu)
-        if function_id:
-            captured_output = execute_function(function_id, input_data=None)
+        selected_function_id = curses.wrapper(show_menu)
+        if selected_function_id:
+            captured_output = execute_function(selected_function_id, input_data=None)
             print(captured_output)
 
 def show_menu(stdscr):
@@ -360,22 +360,40 @@ guest ok = yes
         elif function_id == "install_vscode_desktop":
             print("Visual Studio Code (Desktop) のインストールを開始します...")
             try:
-                # パッケージリストを更新してVS Codeをインストール
-                result = subprocess.run("sudo sh -c 'echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True, capture_output=True, text=True)
+                # VS CodeのGPGキーをインポートとリポジトリの追加
+                print("VS CodeのGPGキーをインポートし、リポジトリを追加しています...")
+                # GPGキーのインポート
+                result = subprocess.run("curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg", shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
+                if result.stderr:
+                    print(f"標準エラー: {result.stderr}")
+
+                # リポジトリの追加
+                result = subprocess.run("echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" | sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                if result.stderr:
+                    print(f"標準エラー: {result.stderr}")
+
                 # パッケージリストを更新してVS Codeをインストール
                 print("パッケージリストを更新しています...")
                 result = subprocess.run("sudo apt update", shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
+                if result.stderr:
+                    print(f"標準エラー: {result.stderr}")
+
                 print("VS Codeをインストールしています...")
                 result = subprocess.run("sudo apt install -y code", shell=True, check=True, capture_output=True, text=True)
                 print(result.stdout)
+                if result.stderr:
+                    print(f"標準エラー: {result.stderr}")
 
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラー: Visual Studio Code (Desktop) のインストールに失敗しました: {e}")
                 print(f"標準出力: {e.stdout}")
                 print(f"標準エラー: {e.stderr}")
+            except Exception as e:
+                print(f"予期せぬエラーが発生しました: {e}")
 
         elif function_id == "install_code_server":
             print("Code Serverのインストールを開始します...")
