@@ -107,6 +107,41 @@ def execute_function(function_id, input_data=None):
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
 
+        elif function_id == "ufw_allow_8080":
+            print("8080ポートを開放します...")
+            try:
+                subprocess.run("sudo ufw allow 8080/tcp", shell=True, check=True)
+                print("8080ポートが開放されました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "ufw_deny_8080":
+            print("8080ポートを閉じます...")
+            try:
+                subprocess.run("sudo ufw deny 8080/tcp", shell=True, check=True)
+                print("8080ポートが閉じられました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "ufw_allow_8000":
+            print("8000ポートを開放します...")
+            try:
+                subprocess.run("sudo ufw allow 8000/tcp", shell=True, check=True)
+                print("8000ポートが開放されました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "ufw_deny_8000":
+            print("8000ポートを閉じます...")
+            try:
+                subprocess.run("sudo ufw deny 8000/tcp", shell=True, check=True)
+                print("8000ポートが閉じられました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "ufw_status":
+            print("ファイアウォールステータスを表示します...")
+            try:
+                subprocess.run("sudo ufw status", shell=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+
         elif function_id == "samba_install_and_share":
             print("Sambaのインストールと共有設定を開始します...")
             try:
@@ -212,6 +247,20 @@ guest ok = yes
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: GitHub CLIのインストールに失敗しました: {e}")
 
+        elif function_id == "install_vscode_desktop":
+            print("Visual Studio Code (Desktop) のインストールを開始します...")
+            try:
+                # VS CodeのGPGキーをインポート
+                subprocess.run("wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg", shell=True, check=True)
+                subprocess.run("sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg", shell=True, check=True)
+                # VS Codeのリポジトリを追加
+                subprocess.run("sudo sh -c 'echo \"deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True)
+                # パッケージリストを更新してVS Codeをインストール
+                subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True)
+                print("Visual Studio Code (Desktop) のインストールが完了しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラー: Visual Studio Code (Desktop) のインストールに失敗しました: {e}")
+
         elif function_id == "install_code_server":
             print("Code Serverのインストールを開始します...")
             try:
@@ -278,6 +327,12 @@ guest ok = yes
                 # 複数のセッションがある場合は、リストが表示され選択を促される
                 subprocess.run("screen -r", shell=True, check=True)
                 print("Screenセッションを再開しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "start_vscode_web_server":
+            print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
+            try:
+                subprocess.run("code serve-web --bind-addr 0.0.0.0:8000", shell=True, check=True)
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
         elif function_id == "code_server_start_manual":

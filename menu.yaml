@@ -5,6 +5,24 @@ menu:
       - id: system_update
         title: システムアップデート (apt update && upgrade)
         description: apt updateとapt upgradeを連続して実行します。
+      - title: ファイアウォール設定
+        description: ファイアウォール (ufw) の設定を行います。
+        items:
+          - id: ufw_allow_8080
+            title: 8080ポートを開放 (Code Server)
+            description: Code Serverが使用する8080ポートをufwで開放します。
+          - id: ufw_deny_8080
+            title: 8080ポートを閉じる (Code Server)
+            description: Code Serverが使用する8080ポートをufwで閉じます。
+          - id: ufw_allow_8000
+            title: 8000ポートを開放 (VS Code Web)
+            description: VS Code Webサーバーが使用する8000ポートをufwで開放します。
+          - id: ufw_deny_8000
+            title: 8000ポートを閉じる (VS Code Web)
+            description: VS Code Webサーバーが使用する8000ポートをufwで閉じます。
+          - id: ufw_status
+            title: ファイアウォールステータス表示
+            description: ufwの現在のステータスを表示します。
   - title: サーバー設定
     description: 各種サーバーアプリケーションの設定
     items:
@@ -23,6 +41,9 @@ menu:
       - id: install_gh
         title: GitHub CLI (gh) をインストール
         description: GitHubのコマンドラインツールをインストールします。
+      - id: install_vscode_desktop
+        title: Visual Studio Code (Desktop) をインストール
+        description: デスクトップ版のVisual Studio Codeをインストールします。
       - id: install_code_server
         title: Code Serverをインストール
         description: WebブラウザからアクセスできるVS Codeをインストールします。
@@ -56,3 +77,6 @@ menu:
       - id: screen_resume
         title: Screenセッションを再開
         description: 既存のGNU Screenセッションを再開します。
+      - id: start_vscode_web_server
+        title: VS Code Webサーバーを起動
+        description: デスクトップ版VS CodeのWebサーバーを起動し、ブラウザからアクセスできるようにします。
