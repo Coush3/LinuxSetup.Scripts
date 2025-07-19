@@ -26,6 +26,18 @@ menu:
       - id: install_code_server
         title: Code Serverをインストール
         description: WebブラウザからアクセスできるVS Codeをインストールします。
+      - title: Code Server
+        description: Code Serverの操作
+        items:
+          - id: code_server_start_manual
+            title: Code Serverを手動で起動
+            description: Code Serverをフォアグラウンドで起動します。
+          - id: code_server_enable_and_start_service
+            title: Code Serverをサービスとして登録し起動
+            description: Code Serverをsystemdサービスとして登録し、自動起動を有効にします。
+          - id: code_server_disable_and_stop_service
+            title: Code Serverサービスを停止し削除
+            description: Code Serverのsystemdサービスを停止し、登録を解除します。
   - title: ユーティリティ
     description: その他の便利なツール
     items:

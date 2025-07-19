@@ -259,6 +259,26 @@ guest ok = yes
                 print("Screenセッションを再開しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+        elif function_id == "code_server_start_manual":
+            print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
+            try:
+                subprocess.run("code-server", shell=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "code_server_enable_and_start_service":
+            print("Code Serverをサービスとして登録し起動します...")
+            try:
+                subprocess.run("sudo systemctl enable --now code-server@$USER", shell=True, check=True)
+                print("Code Serverサービスが登録され、起動しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "code_server_disable_and_stop_service":
+            print("Code Serverサービスを停止し削除します...")
+            try:
+                subprocess.run("sudo systemctl disable --now code-server@$USER", shell=True, check=True)
+                print("Code Serverサービスが停止され、登録解除されました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
         else:
             print(f"未定義の機能IDです: {function_id}")
 
