@@ -588,14 +588,28 @@ guest ok = yes
             log_file_path = "/tmp/vscode_web_server.log"
             try:
                 # 既存のプロセスを終了 (念のため)
-                subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
+                subprocess.run("pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
+                # ログファイルも削除
+                if os.path.exists(log_file_path):
+                    os.remove(log_file_path)
 
                 # rootユーザーとしてcode serve-webをバックグラウンドで実行し、ログをファイルにリダイレクト
                 command = f"nohup code serve-web --host 0.0.0.0 --server-data-dir /root/.vscode-server-data > {log_file_path} 2>&1 &"
                 subprocess.run(command, shell=True, check=True)
 
-                print(f"VS Code Webサーバーをバックグラウンドで起動しました。ログは {log_file_path} を確認してください。")
-                print("起動後、'VS Code WebサーバーのURLを取得'メニューからURLを取得してください。")
+                print("サーバーの起動を待っています...")
+                # サーバーがURLをログに出力するまで最大10秒待機
+                for _ in range(10):
+                    time.sleep(1)
+                    if os.path.exists(log_file_path):
+                        with open(log_file_path, 'r') as f:
+                            if "Web UI available at" in f.read():
+                                print("VS Code Webサーバーが起動しました。")
+                                print(f"ログは {log_file_path} を確認してください。")
+                                print("メニューからURLを取得してください。")
+                                return # 正常に起動したら関数を抜ける
+                
+                print("サーバーの起動がタイムアウトしました。ログファイルを確認してください。")
 
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
