@@ -156,11 +156,9 @@ def execute_function(function_id, input_data=None):
             share_path = input_data.get("share_path") if input_data else None
 
             if not share_path:
-                print("エラー: 共有したいフォルダのパスが指定されていません。")
-                return
+                share_path = input("共有したいフォルダのフルパスを入力してください: ")
 
-            # パスが存在するか確認
-            if not os.path.isdir(share_path):
+            if not share_path:
                 print(f"エラー: 指定されたパス '{share_path}' は存在しないか、フォルダではありません。")
                 return
 
@@ -306,11 +304,22 @@ guest ok = yes
             if share_name_to_delete:
                 delete_samba_share(share_name_to_delete)
             else:
-                # CLIから呼び出す場合、またはWebで共有名が指定されない場合
-                print("エラー: 削除するSamba共有名が指定されていません。")
-                print("CLIから実行する場合は、`menu.py samba_delete_share --share_name <共有名>` のように指定してください。")
-                # CLIで選択メニューを表示したい場合は、ここにcurses.wrapper(select_share_menu, get_samba_shares())のようなロジックを追加
-                # 今回はWeb対応を優先するため、CLIでのインタラクティブな選択は省略
+                # CLIから呼び出す場合、cursesで選択メニューを表示
+                shares = get_samba_shares()
+                if not shares:
+                    print("共有が見つかりません。")
+                    return
+                
+                # cursesで選択メニューを表示
+                try:
+                    selected_share_name = curses.wrapper(select_share_menu, shares)
+                    if selected_share_name:
+                        delete_samba_share(selected_share_name)
+                    else:
+                        print("共有の選択がキャンセルされました。")
+                except Exception as e:
+                    print(f"エラー: 共有選択メニューの表示に失敗しました: {e}")
+                    print("CLIから実行する場合は、`menu.py samba_delete_share --share_name <共有名>` のように指定してください。")
         elif function_id == "screen_start":
             print("新しいScreenセッションを開始します...")
             try:
@@ -399,6 +408,17 @@ guest ok = yes
                 with open(config_path, "w") as f:
                     yaml.safe_dump(config, f)
                 print("パスワードを設定しました。Code Serverを再起動してください。")
+            except Exception as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "webmenu_reset_password":
+            print("Webメニューのパスワードをリセットします...")
+            try:
+                web_password_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.webmenu_password')
+                if os.path.exists(web_password_file):
+                    os.remove(web_password_file)
+                    print("Webメニューのパスワードがリセットされました。次回Webメニュー起動時に新しいパスワードを設定してください。")
+                else:
+                    print("Webメニューのパスワードファイルが見つかりません。")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
         else:
@@ -497,6 +517,47 @@ def delete_samba_share(share_name_to_delete):
         print(f"エラー: {smb_conf_path} が見つかりません。Sambaがインストールされていない可能性があります。")
     except Exception as e:
         print(f"エラーが発生しました: {e}")
+
+def select_share_menu(stdscr, shares):
+    curses.curs_set(0)
+    stdscr.nodelay(0)
+    stdscr.timeout(-1)
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
+    current_row = 0
+
+    while True:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        title = "削除するSamba共有を選択してください:"
+        stdscr.addstr(0, 0, title)
+        stdscr.addstr(1, 0, "=" * len(title))
+
+        for i, share in enumerate(shares):
+            display_name = share["name"]
+            x = 0
+            y = i + 3
+            if i == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, f"> {display_name}")
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, f"  {display_name}")
+        
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP:
+            current_row = (current_row - 1) % len(shares)
+        elif key == curses.KEY_DOWN:
+            current_row = (current_row + 1) % len(shares)
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            return shares[current_row]["name"]
+        elif key == 27: # ESCキー
+            return None
 
 # select_share_menu は curses 依存のため削除
 

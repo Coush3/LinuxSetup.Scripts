@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hostname Setup Menu</title>
+    <title>{{ hostname }} Setup Menu</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -207,6 +207,10 @@
 
         async function fetchMenuData() {
             const response = await fetch('/api/menu');
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
             const data = await response.json();
             currentMenu = data.menu;
             renderMenu();
@@ -337,6 +341,10 @@
                     },
                     body: JSON.stringify({ function_id: selectedFunctionId, input_data: inputData })
                 });
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
                 const result = await response.json();
                 outputContent.textContent = result.output || result.error || 'エラーが発生しました。';
             } catch (error) {
@@ -357,6 +365,10 @@
         async function fetchSambaShares() {
             try {
                 const response = await fetch('/api/samba_shares');
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
                 const shares = await response.json();
                 deleteShareSelect.innerHTML = '';
                 if (shares.length > 0) {

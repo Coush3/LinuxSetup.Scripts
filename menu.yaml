@@ -92,3 +92,6 @@ menu:
       - id: screen_resume
         title: Screenセッションを再開
         description: 既存のGNU Screenセッションを再開します。
+      - id: webmenu_reset_password
+        title: Webメニューパスワードリセット
+        description: Webメニューのパスワードをリセットします。
