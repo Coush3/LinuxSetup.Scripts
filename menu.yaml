@@ -56,9 +56,15 @@ menu:
           - id: install_vscode_desktop
             title: Visual Studio Code (Desktop) をインストール
             description: デスクトップ版のVisual Studio Codeをインストールします。
-          - id: start_vscode_web_server
-            title: VS Code Webサーバーを起動
-            description: デスクトップ版VS CodeのWebサーバーを起動し、ブラウザからアクセスできるようにします。
+          - id: start_vscode_web_server_background
+            title: VS Code Webサーバーをバックグラウンドで起動
+            description: デスクトップ版VS CodeのWebサーバーをバックグラウンドで起動します。
+          - id: get_vscode_web_server_url
+            title: VS Code WebサーバーのURLを取得
+            description: 起動中のVS Code WebサーバーのアクセスURLを表示します。
+          - id: stop_vscode_web_server
+            title: VS Code Webサーバーを停止
+            description: 起動中のVS Code Webサーバーを停止します。
           - id: ufw_allow_8000
             title: 8000ポートを開放
             description: VS Code Webサーバーが使用する8000ポートをufwで開放します。
