@@ -8,18 +8,6 @@ menu:
       - title: ファイアウォール設定
         description: ファイアウォール (ufw) の設定を行います。
         items:
-          - id: ufw_allow_8080
-            title: 8080ポートを開放 (Code Server)
-            description: Code Serverが使用する8080ポートをufwで開放します。
-          - id: ufw_deny_8080
-            title: 8080ポートを閉じる (Code Server)
-            description: Code Serverが使用する8080ポートをufwで閉じます。
-          - id: ufw_allow_8000
-            title: 8000ポートを開放 (VS Code Web)
-            description: VS Code Webサーバーが使用する8000ポートをufwで開放します。
-          - id: ufw_deny_8000
-            title: 8000ポートを閉じる (VS Code Web)
-            description: VS Code Webサーバーが使用する8000ポートをufwで閉じます。
           - id: ufw_status
             title: ファイアウォールステータス表示
             description: ufwの現在のステータスを表示します。
@@ -56,6 +44,12 @@ menu:
           - id: code_server_set_password
             title: Code Serverパスワード設定
             description: Code Serverのパスワードを設定します。
+          - id: ufw_allow_8080
+            title: 8080ポートを開放
+            description: Code Serverが使用する8080ポートをufwで開放します。
+          - id: ufw_deny_8080
+            title: 8080ポートを閉じる
+            description: Code Serverが使用する8080ポートをufwで閉じます。
       - title: Visual Studio Code (Desktop)
         description: デスクトップ版のVisual Studio Code
         items:
@@ -65,6 +59,12 @@ menu:
           - id: start_vscode_web_server
             title: VS Code Webサーバーを起動
             description: デスクトップ版VS CodeのWebサーバーを起動し、ブラウザからアクセスできるようにします。
+          - id: ufw_allow_8000
+            title: 8000ポートを開放
+            description: VS Code Webサーバーが使用する8000ポートをufwで開放します。
+          - id: ufw_deny_8000
+            title: 8000ポートを閉じる
+            description: VS Code Webサーバーが使用する8000ポートをufwで閉じます。
       - title: Microsoft Edit
         description: Microsoftの軽量テキストエディタ
         items:
