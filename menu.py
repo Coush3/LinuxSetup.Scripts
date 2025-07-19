@@ -519,7 +519,7 @@ guest ok = yes
                 if os.path.exists(log_file_path):
                     with open(log_file_path, 'r') as f:
                         log_content = f.read()
-                        match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", log_content)
+                        match = re.search(r"Web UI available at (http://[0-9a-fA-F\.:]+:[0-9]+(?:/?tkn=[a-f0-9-]+)?)", log_content)
                         if match:
                             print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
                         else:
@@ -532,7 +532,7 @@ guest ok = yes
             print("VS Code Webサーバーを停止します...")
             try:
                 result = subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
-                if result.returncode == 0:
+                if result.returncode == 0 or result.returncode == -15:
                     print("VS Code Webサーバーを停止しました。")
                 elif result.returncode == 1: # pkill returns 1 if no processes were matched
                     print("VS Code Webサーバーは実行されていませんでした。")
