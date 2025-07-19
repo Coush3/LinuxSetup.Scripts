@@ -733,7 +733,7 @@ guest ok = yes
                     print("config.yamlが見つかりません。Code Serverがインストールされていないか、設定ファイルが作成されていません。")
                     return
 
-                new_password = input_data.get("password") if input_data else None
+                new_password = input_data.get("password") if input_data and "password" in input_data else None
                 if not new_password:
                     new_password = input("新しいパスワードを入力してください: ")
 

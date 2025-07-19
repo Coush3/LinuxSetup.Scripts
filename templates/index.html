@@ -183,6 +183,12 @@
             <button id="submitDeleteShare">削除</button>
         </div>
 
+        <div class="input-prompt" id="passwordPrompt" style="display: none;">
+            <label for="passwordInput">新しいパスワードを入力してください:</label>
+            <input type="password" id="passwordInput" placeholder="新しいパスワード">
+            <button id="submitPassword">設定</button>
+        </div>
+
         <div class="output-section" id="outputSection" style="display: none;">
             <h2>実行結果</h2>
             <pre id="outputContent"></pre>
@@ -205,6 +211,9 @@
         const deleteSharePrompt = document.getElementById('deleteSharePrompt');
         const deleteShareSelect = document.getElementById('deleteShareSelect');
         const submitDeleteShareButton = document.getElementById('submitDeleteShare');
+        const passwordPrompt = document.getElementById('passwordPrompt');
+        const passwordInput = document.getElementById('passwordInput');
+        const submitPasswordButton = document.getElementById('submitPassword');
         const backButton = document.getElementById('backButton');
         const executeButton = document.getElementById('executeButton');
 
@@ -254,6 +263,7 @@
             outputSection.style.display = 'none';
             inputPrompt.style.display = 'none';
             deleteSharePrompt.style.display = 'none';
+            passwordPrompt.style.display = 'none';
             executeButton.style.display = 'none';
 
             if (menuStack.length > 0) {
@@ -323,10 +333,16 @@
                 } else if (item.id === 'samba_delete_share') {
                     inputPrompt.style.display = 'none';
                     deleteSharePrompt.style.display = 'block';
+                    passwordPrompt.style.display = 'none';
                     fetchSambaShares();
+                } else if (item.id === 'code_server_set_password') {
+                    inputPrompt.style.display = 'none';
+                    deleteSharePrompt.style.display = 'none';
+                    passwordPrompt.style.display = 'block';
                 } else {
                     inputPrompt.style.display = 'none';
                     deleteSharePrompt.style.display = 'none';
+                    passwordPrompt.style.display = 'none';
                 }
             }
         }
@@ -352,6 +368,8 @@
                 inputData = { share_path: sharePathInput.value };
             } else if (selectedFunctionId === 'samba_delete_share') {
                 inputData = { share_name: deleteShareSelect.value };
+            } else if (selectedFunctionId === 'code_server_set_password') {
+                inputData = { password: passwordInput.value };
             }
 
             outputSection.style.display = 'block';
@@ -382,6 +400,11 @@
         });
 
         submitDeleteShareButton.addEventListener('click', () => {
+            // 実行ボタンが押されたときに処理されるため、ここでは何もしない
+            // executeButton.click();
+        });
+
+        submitPasswordButton.addEventListener('click', () => {
             // 実行ボタンが押されたときに処理されるため、ここでは何もしない
             // executeButton.click();
         });
