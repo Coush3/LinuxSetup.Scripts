@@ -3,20 +3,84 @@ import os
 import subprocess
 import sys
 import curses
-import io # 追加
+import io
+import argparse # 追加
 
 def main():
-    # コマンドライン引数を確認
-    if len(sys.argv) > 1:
-        # 引数があれば、それを機能IDとして直接実行
-        function_id = sys.argv[1]
-        # CLIからの実行なので、input_dataはNone
-        execute_function(function_id, input_data=None)
+    parser = argparse.ArgumentParser(description="Linux Setup Menu CLI Tool")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # samba_delete_share コマンドのパーサー
+    samba_delete_parser = subparsers.add_parser('samba_delete_share', help='Delete a Samba share')
+    samba_delete_parser.add_argument('--share_name', type=str, help='Name of the Samba share to delete')
+
+    # samba_install_and_share コマンドのパーサー
+    samba_install_parser = subparsers.add_parser('samba_install_and_share', help='Install Samba and share a folder')
+    samba_install_parser.add_argument('--share_path', type=str, help='Full path to the folder to share')
+
+    # webmenu_reset_password コマンドのパーサー
+    webmenu_reset_parser = subparsers.add_parser('webmenu_reset_password', help='Reset Webmenu password')
+
+    # その他の直接実行可能なIDをここに追加
+    # 例: system_update
+    system_update_parser = subparsers.add_parser('system_update', help='Perform system update')
+
+    # ufw_allow_8080
+    ufw_allow_8080_parser = subparsers.add_parser('ufw_allow_8080', help='Allow 8080 port in ufw')
+    # ufw_deny_8080
+    ufw_deny_8080_parser = subparsers.add_parser('ufw_deny_8080', help='Deny 8080 port in ufw')
+    # ufw_allow_8000
+    ufw_allow_8000_parser = subparsers.add_parser('ufw_allow_8000', help='Allow 8000 port in ufw')
+    # ufw_deny_8000
+    ufw_deny_8000_parser = subparsers.add_parser('ufw_deny_8000', help='Deny 8000 port in ufw')
+    # ufw_status
+    ufw_status_parser = subparsers.add_parser('ufw_status', help='Show ufw status')
+
+    # install_ms_edit
+    install_ms_edit_parser = subparsers.add_parser('install_ms_edit', help='Install Microsoft Edit')
+    # install_gh
+    install_gh_parser = subparsers.add_parser('install_gh', help='Install GitHub CLI (gh)')
+    # install_vscode_desktop
+    install_vscode_desktop_parser = subparsers.add_parser('install_vscode_desktop', help='Install Visual Studio Code (Desktop)')
+    # install_code_server
+    install_code_server_parser = subparsers.add_parser('install_code_server', help='Install Code Server')
+    # install_vscode_remote_server_deps
+    install_vscode_remote_server_deps_parser = subparsers.add_parser('install_vscode_remote_server_deps', help='Install VS Code Remote - SSH Server dependencies')
+    # screen_start
+    screen_start_parser = subparsers.add_parser('screen_start', help='Start a new Screen session')
+    # screen_resume
+    screen_resume_parser = subparsers.add_parser('screen_resume', help='Resume an existing Screen session')
+    # start_vscode_web_server
+    start_vscode_web_server_parser = subparsers.add_parser('start_vscode_web_server', help='Start VS Code Web server')
+    # code_server_start_manual
+    code_server_start_manual_parser = subparsers.add_parser('code_server_start_manual', help='Start Code Server manually')
+    # code_server_enable_and_start_service
+    code_server_enable_and_start_service_parser = subparsers.add_parser('code_server_enable_and_start_service', help='Enable and start Code Server service')
+    # code_server_disable_and_stop_service
+    code_server_disable_and_stop_service_parser = subparsers.add_parser('code_server_disable_and_stop_service', help='Disable and stop Code Server service')
+    # code_server_show_password
+    code_server_show_password_parser = subparsers.add_parser('code_server_show_password', help='Show Code Server password')
+    # code_server_set_password
+    code_server_set_password_parser = subparsers.add_parser('code_server_set_password', help='Set Code Server password')
+    code_server_set_password_parser.add_argument('--password', type=str, help='New password for Code Server')
+
+    args = parser.parse_args()
+
+    if args.command:
+        function_id = args.command
+        input_data = {}
+        if hasattr(args, 'share_name') and args.share_name:
+            input_data['share_name'] = args.share_name
+        if hasattr(args, 'share_path') and args.share_path:
+            input_data['share_path'] = args.share_path
+        if hasattr(args, 'password') and args.password:
+            input_data['password'] = args.password
+        
+        execute_function(function_id, input_data=input_data)
     else:
         # 引数がなければ、メニューを表示
         function_id = curses.wrapper(show_menu)
         if function_id:
-            # CLIからの実行なので、input_dataはNone
             execute_function(function_id, input_data=None)
 
 def show_menu(stdscr):
@@ -101,56 +165,79 @@ def execute_function(function_id, input_data=None):
         if function_id == "system_update":
             print("システムアップデートを実行します...")
             try:
-                # apt update && apt upgrade を実行
-                subprocess.run("sudo apt update && sudo apt upgrade -y", shell=True, check=True)
+                result = subprocess.run("sudo apt update && sudo apt upgrade -y", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("システムアップデートが完了しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
 
         elif function_id == "ufw_allow_8080":
             print("8080ポートを開放します...")
             try:
-                subprocess.run("sudo ufw allow 8080/tcp", shell=True, check=True)
+                result = subprocess.run("sudo ufw allow 8080/tcp", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("8080ポートが開放されました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "ufw_deny_8080":
             print("8080ポートを閉じます...")
             try:
-                subprocess.run("sudo ufw deny 8080/tcp", shell=True, check=True)
+                result = subprocess.run("sudo ufw deny 8080/tcp", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("8080ポートが閉じられました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "ufw_allow_8000":
             print("8000ポートを開放します...")
             try:
-                subprocess.run("sudo ufw allow 8000/tcp", shell=True, check=True)
+                result = subprocess.run("sudo ufw allow 8000/tcp", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("8000ポートが開放されました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "ufw_deny_8000":
             print("8000ポートを閉じます...")
             try:
-                subprocess.run("sudo ufw deny 8000/tcp", shell=True, check=True)
+                result = subprocess.run("sudo ufw deny 8000/tcp", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("8000ポートが閉じられました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "ufw_status":
             print("ファイアウォールステータスを表示します...")
             try:
-                subprocess.run("sudo ufw status", shell=True, check=True)
+                result = subprocess.run("sudo ufw status", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
 
         elif function_id == "samba_install_and_share":
             print("Sambaのインストールと共有設定を開始します...")
             try:
-                # Sambaがインストールされているか確認
-                subprocess.run("dpkg -l | grep samba", shell=True, check=True, capture_output=True)
+                result = subprocess.run("dpkg -l | grep samba", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Sambaは既にインストールされています。")
             except subprocess.CalledProcessError:
                 print("Sambaをインストールします...")
-                subprocess.run("sudo apt update && sudo apt install -y samba", shell=True, check=True)
+                try:
+                    result = subprocess.run("sudo apt update && sudo apt install -y samba", shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
+                except subprocess.CalledProcessError as e:
+                    print(f"エラー: Sambaのインストールに失敗しました: {e}")
+                    print(f"標準出力: {e.stdout}")
+                    print(f"標準エラー: {e.stderr}")
 
             # 共有フォルダのパスをinput_dataから取得
             share_path = input_data.get("share_path") if input_data else None
@@ -179,25 +266,36 @@ guest ok = yes
 
             try:
                 # sudo を使って書き込むために、teeコマンドを利用
-                subprocess.run(f'echo "{share_config}" | sudo tee -a {smb_conf_path}', shell=True, check=True)
+                result = subprocess.run(f'echo "{share_config}" | sudo tee -a {smb_conf_path}', shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("設定を追記しました。")
 
                 # Sambaサービスを再起動
-                print("Sambaサービスを再起動します...")
-                subprocess.run("sudo systemctl restart smbd", shell=True, check=True)
+                result = subprocess.run("sudo systemctl restart smbd", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Sambaサービスを再起動しました。")
 
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
 
         elif function_id == "install_ms_edit":
             print("Microsoft Editのインストールを開始します...")
             try:
-                # zstdがインストールされているか確認
-                subprocess.run("dpkg -l | grep zstd", shell=True, check=True, capture_output=True)
+                result = subprocess.run("dpkg -l | grep zstd", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
             except subprocess.CalledProcessError:
                 print("zstdをインストールします...")
-                subprocess.run("sudo apt update && sudo apt install -y zstd", shell=True, check=True)
+                try:
+                    result = subprocess.run("sudo apt update && sudo apt install -y zstd", shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
+                except subprocess.CalledProcessError as e:
+                    print(f"エラー: zstdのインストールに失敗しました: {e}")
+                    print(f"標準出力: {e.stdout}")
+                    print(f"標準エラー: {e.stderr}")
             
             try:
                 # ダウンロードと展開
@@ -205,14 +303,17 @@ guest ok = yes
                 file_name = download_url.split("/")[-1]
                 
                 print(f"{download_url} から {file_name} をダウンロードします...")
-                subprocess.run(f"wget {download_url}", shell=True, check=True)
+                result = subprocess.run(f"wget {download_url}", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
 
                 print(f"{file_name} を展開します...")
-                subprocess.run(f"tar -I zstd -xf {file_name}", shell=True, check=True)
+                result = subprocess.run(f"tar -I zstd -xf {file_name}", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
 
                 # インストール
                 print("editを /usr/local/bin にインストールします...")
-                subprocess.run("sudo mv edit /usr/local/bin/", shell=True, check=True)
+                result = subprocess.run("sudo mv edit /usr/local/bin/", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
 
                 # クリーンアップ
                 print(f"{file_name} を削除します...")
@@ -220,6 +321,10 @@ guest ok = yes
 
                 print("Microsoft Editのインストールが完了しました。")
 
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
 
@@ -227,7 +332,8 @@ guest ok = yes
             print("GitHub CLI (gh) のインストールを開始します...")
             try:
                 # ghがインストールされているか確認
-                subprocess.run("gh --version", shell=True, check=True, capture_output=True)
+                result = subprocess.run("gh --version", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("GitHub CLIは既にインストールされています。")
             except (subprocess.CalledProcessError, FileNotFoundError):
                 print("GitHub CLIをインストールします...")
@@ -240,45 +346,58 @@ guest ok = yes
                     && sudo apt update \
                     && sudo apt install gh -y
                     '''
-                    subprocess.run(install_command, shell=True, check=True)
+                    result = subprocess.run(install_command, shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
                     print("GitHub CLIのインストールが完了しました。")
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: GitHub CLIのインストールに失敗しました: {e}")
+                    print(f"標準出力: {e.stdout}")
+                    print(f"標準エラー: {e.stderr}")
 
         elif function_id == "install_vscode_desktop":
             print("Visual Studio Code (Desktop) のインストールを開始します...")
             try:
                 # vscode ユーザーが存在しない場合、作成する
                 try:
-                    subprocess.run("id -u vscode", shell=True, check=True, capture_output=True)
+                    result = subprocess.run("id -u vscode", shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
                     print("ユーザー 'vscode' は既に存在します。")
                 except subprocess.CalledProcessError:
                     print("ユーザー 'vscode' を作成します...")
-                    subprocess.run("sudo useradd -m -s /bin/bash vscode", shell=True, check=True)
+                    result = subprocess.run("sudo useradd -m -s /bin/bash vscode", shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
                     print("ユーザー 'vscode' を作成しました。")
 
                 # VS CodeのGPGキーをインポート
-                subprocess.run("wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg", shell=True, check=True)
-                subprocess.run("sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg", shell=True, check=True)
+                result = subprocess.run("wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
+                result = subprocess.run("sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 # VS Codeのリポジトリを追加
-                subprocess.run("sudo sh -c 'echo \"deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True)
+                result = subprocess.run("sudo sh -c 'echo \"deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 # パッケージリストを更新してVS Codeをインストール
-                subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True)
+                result = subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
 
                 # vscode ユーザーのホームディレクトリの所有権を設定
                 print("ユーザー 'vscode' のホームディレクトリの所有権を設定します...")
-                subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True)
+                result = subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("所有権を設定しました。")
 
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラー: Visual Studio Code (Desktop) のインストールに失敗しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
 
         elif function_id == "install_code_server":
             print("Code Serverのインストールを開始します...")
             try:
                 # code-serverがインストールされているか確認
-                subprocess.run("code-server --version", shell=True, check=True, capture_output=True)
+                result = subprocess.run("code-server --version", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Code Serverは既にインストールされています。")
             except (subprocess.CalledProcessError, FileNotFoundError):
                 print("Code Serverをインストールします...")
@@ -287,10 +406,13 @@ guest ok = yes
                     install_command = '''
                     curl -fsSL https://code-server.dev/install.sh | sh
                     '''
-                    subprocess.run(install_command, shell=True, check=True)
+                    result = subprocess.run(install_command, shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
                     print("Code Serverのインストールが完了しました。")
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: Code Serverのインストールに失敗しました: {e}")
+                    print(f"標準出力: {e.stdout}")
+                    print(f"標準エラー: {e.stderr}")
 
         elif function_id == "install_vscode_remote_server_deps":
             print("VS Code Remote - SSH Serverの依存関係をインストールします...")
@@ -305,10 +427,13 @@ guest ok = yes
             if missing_packages:
                 print(f"以下のパッケージをインストールします: {', '.join(missing_packages)}")
                 try:
-                    subprocess.run(f"sudo apt update && sudo apt install -y {' '.join(missing_packages)}", shell=True, check=True)
+                    result = subprocess.run(f"sudo apt update && sudo apt install -y {' '.join(missing_packages)}", shell=True, check=True, capture_output=True, text=True)
+                    print(result.stdout)
                     print("依存関係のインストールが完了しました。")
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: 依存関係のインストールに失敗しました: {e}")
+                    print(f"標準出力: {e.stdout}")
+                    print(f"標準エラー: {e.stderr}")
             else:
                 print("必要な依存関係はすべてインストールされています。")
             print("これで、ローカルのVS CodeからSSH接続を試みてください。VS Codeが自動的にリモートサーバーにVS Code Serverをインストールします。")
@@ -340,19 +465,25 @@ guest ok = yes
             try:
                 # screen -S <セッション名> で新しいセッションを開始
                 # セッション名は適当に 'my_session' とする
-                subprocess.run("screen -S my_session", shell=True, check=True)
+                result = subprocess.run("screen -S my_session", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Screenセッションが開始されました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "screen_resume":
             print("Screenセッションを再開します...")
             try:
                 # screen -r で既存のセッションを再開
                 # 複数のセッションがある場合は、リストが表示され選択を促される
-                subprocess.run("screen -r", shell=True, check=True)
+                result = subprocess.run("screen -r", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Screenセッションを再開しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "start_vscode_web_server":
             print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
             try:
@@ -375,23 +506,34 @@ guest ok = yes
         elif function_id == "code_server_start_manual":
             print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
             try:
-                subprocess.run("code-server --bind-addr 0.0.0.0:8080", shell=True, check=True)
+                result = subprocess.run("code-server --bind-addr 0.0.0.0:8080", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "code_server_enable_and_start_service":
             print("Code Serverをサービスとして登録し起動します...")
             try:
-                subprocess.run("sudo systemctl enable --now code-server@$USER", shell=True, check=True)
+                current_user = os.getlogin() # 現在のユーザー名を取得
+                result = subprocess.run(f"sudo systemctl enable --now code-server@{current_user}", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Code Serverサービスが登録され、起動しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "code_server_disable_and_stop_service":
             print("Code Serverサービスを停止し削除します...")
             try:
-                subprocess.run("sudo systemctl disable --now code-server@$USER", shell=True, check=True)
+                current_user = os.getlogin() # 現在のユーザー名を取得
+                result = subprocess.run(f"sudo systemctl disable --now code-server@{current_user}", shell=True, check=True, capture_output=True, text=True)
+                print(result.stdout)
                 print("Code Serverサービスが停止され、登録解除されました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"標準出力: {e.stdout}")
+                print(f"標準エラー: {e.stderr}")
         elif function_id == "code_server_show_password":
             print("Code Serverのパスワードを表示します...")
             try:
@@ -407,6 +549,7 @@ guest ok = yes
                     print("config.yamlが見つかりません。Code Serverがインストールされていないか、設定ファイルが作成されていません。")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"詳細: {e}")
         elif function_id == "code_server_set_password":
             print("Code Serverのパスワードを設定します...")
             try:
@@ -427,6 +570,7 @@ guest ok = yes
                 print("パスワードを設定しました。Code Serverを再起動してください。")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"詳細: {e}")
         elif function_id == "webmenu_reset_password":
             print("Webメニューのパスワードをリセットします...")
             try:
@@ -438,6 +582,7 @@ guest ok = yes
                     print("Webメニューのパスワードファイルが見つかりません。")
             except Exception as e:
                 print(f"エラーが発生しました: {e}")
+                print(f"詳細: {e}")
         else:
             print(f"未定義の機能IDです: {function_id}")
 
