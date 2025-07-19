@@ -17,11 +17,11 @@ if [ ! -f "$LOCK_FILE" ]; then
         exit 1
     fi
 
-    # 2. main.py を実行する menu スクリプトを作成
+    # 2. menu.py を実行する menu スクリプトを作成
     echo "起動スクリプト 'menu' を作成します..."
     cat <<EOF > "$SCRIPT_DIR/menu"
 #!/bin/bash
-# このスクリプト自身のディレクトリを取得し、そこにあるmain.pyを実行
+# このスクリプト自身のディレクトリを取得し、そこにあるmenu.pyを実行
 SCRIPT_DIR=\$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 python3 "$SCRIPT_DIR/menu.py" "$@"
 EOF
@@ -30,7 +30,21 @@ EOF
     chmod +x "$SCRIPT_DIR/menu"
     echo "'menu' に実行権限を付与しました。"
 
-    # 4. ロックファイルを作成
+    # 4. リポジトリを更新する update スクリプトを作成
+    echo "更新スクリプト 'update' を作成します..."
+    cat <<EOF > "$SCRIPT_DIR/update"
+#!/bin/bash
+# このスクリプト自身のディレクトリに移動し、git pullを実行
+SCRIPT_DIR=\$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+cd "$SCRIPT_DIR"
+git pull
+EOF
+
+    # 5. update スクリプトに実行権限を付与
+    chmod +x "$SCRIPT_DIR/update"
+    echo "'update' に実行権限を付与しました。"
+
+    # 6. ロックファイルを作成
     touch "$LOCK_FILE"
 
     echo "セットアップが完了しました。"
