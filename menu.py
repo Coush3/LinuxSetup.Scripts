@@ -6,7 +6,36 @@ import curses
 import io
 import argparse
 import time
-import re # 追加
+import re
+
+# ヘルパー関数
+def is_command_available(command):
+    try:
+        subprocess.run(f"which {command}", shell=True, check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def is_package_installed(package_name):
+    try:
+        subprocess.run(f"dpkg -s {package_name}", shell=True, check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def is_service_active(service_name):
+    try:
+        subprocess.run(f"systemctl is-active --quiet {service_name}", shell=True, check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def is_process_running(process_name):
+    try:
+        subprocess.run(f"pgrep -f '{process_name}'", shell=True, check=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Linux Setup Menu CLI Tool")
@@ -98,6 +127,7 @@ def show_menu(stdscr):
     stdscr.timeout(-1)
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_CYAN) # 非活性項目用の色
 
     # メニューデータの読み込み
     with open("menu.yaml", "r", encoding="utf-8") as f:
@@ -123,13 +153,27 @@ def show_menu(stdscr):
         current_row = row_stack[-1]
 
         for i, item in enumerate(current_menu_items):
+            status = get_menu_item_status(item.get('id')) # メニュー項目の状態を取得
+            display_text = f"  {item['title']}"
+            if status['reason']:
+                display_text += f" ({status['reason']})"
+
             if i == current_row:
-                stdscr.addstr(i + 3, 0, f"> {item['title']}", curses.color_pair(1))
+                if status['active']:
+                    stdscr.addstr(i + 3, 0, f"> {display_text.strip()}", curses.color_pair(1))
+                else:
+                    stdscr.addstr(i + 3, 0, f"> {display_text.strip()}", curses.color_pair(2)) # 非活性色
             else:
-                stdscr.addstr(i + 3, 0, f"  {item['title']}")
+                if status['active']:
+                    stdscr.addstr(i + 3, 0, f"  {display_text.strip()}")
+                else:
+                    stdscr.addstr(i + 3, 0, f"  {display_text.strip()}", curses.color_pair(2)) # 非活性色
         
         # 説明の表示
         description = current_menu_items[current_row].get('description', '')
+        status = get_menu_item_status(current_menu_items[current_row].get('id'))
+        if status['reason']:
+            description += f" (状態: {status['reason']})"
         stdscr.addstr(len(current_menu_items) + 5, 0, description)
         
         stdscr.refresh()
@@ -144,19 +188,25 @@ def show_menu(stdscr):
             row_stack[-1] = (current_row + 1) % len(current_menu_items)
         elif key == curses.KEY_ENTER or key in [10, 13]:
             selected_item = current_menu_items[current_row]
+            status = get_menu_item_status(selected_item.get('id'))
+            if not status['active']:
+                continue # 非活性な項目は選択できない
+
             if "items" in selected_item:
                 # サブメニューに移動
-                menu_stack.append(selected_item["items"])
-                row_stack.append(0)
+                menu_stack.append(current_menu_items)
+                row_stack.append(current_row)
                 title_stack.append(selected_item["title"])
+                current_menu_items = selected_item["items"]
+                row_stack[-1] = 0 # 新しいメニューの選択をリセット
             elif "id" in selected_item:
                 # 実行するIDを返す
                 return selected_item["id"]
         elif key == 27: # ESCキー
-            if len(menu_stack) > 1:
+            if len(menu_stack) > 0:
                 # 親メニューに戻る
-                menu_stack.pop()
-                row_stack.pop()
+                current_menu_items = menu_stack.pop()
+                current_row = row_stack.pop()
                 title_stack.pop()
             else:
                 # ルートメニューでESCなら終了
@@ -180,6 +230,46 @@ def execute_function(function_id, input_data=None):
                 print(f"エラーが発生しました: {e}")
                 print(f"標準出力: {e.stdout}")
                 print(f"標準エラー: {e.stderr}")
+
+def get_menu_item_status(item_id):
+    """メニュー項目の活性・非活性状態を判断する"""
+    status = {'active': True, 'reason': ''}
+
+    if item_id == "install_ms_edit":
+        if is_command_available("edit"): # editコマンドが既に存在すれば非活性
+            status = {'active': False, 'reason': 'インストール済み'}
+    elif item_id == "install_gh":
+        if is_command_available("gh"): # ghコマンドが既に存在すれば非活性
+            status = {'active': False, 'reason': 'インストール済み'}
+    elif item_id == "install_vscode_desktop":
+        if is_command_available("code"): # codeコマンドが既に存在すれば非活性
+            status = {'active': False, 'reason': 'インストール済み'}
+    elif item_id == "install_code_server":
+        if is_command_available("code-server"): # code-serverコマンドが既に存在すれば非活性
+            status = {'active': False, 'reason': 'インストール済み'}
+    elif item_id == "start_vscode_web_server_background":
+        if not is_command_available("code"): # codeコマンドがなければ非活性
+            status = {'active': False, 'reason': 'VS Code (Desktop) が未インストール'}
+        elif is_process_running("code serve-web"): # 既に実行中なら非活性
+            status = {'active': False, 'reason': '既に実行中'}
+    elif item_id == "get_vscode_web_server_url":
+        if not is_process_running("code serve-web"): # 実行中でなければ非活性
+            status = {'active': False, 'reason': 'VS Code Webサーバーが未起動'}
+    elif item_id == "stop_vscode_web_server":
+        if not is_process_running("code serve-web"): # 実行中でなければ非活性
+            status = {'active': False, 'reason': 'VS Code Webサーバーが未起動'}
+    elif item_id == "samba_install_and_share":
+        if is_package_installed("samba"): # Sambaがインストール済みなら非活性
+            status = {'active': False, 'reason': 'Sambaインストール済み'}
+    elif item_id == "samba_delete_share":
+        if not is_package_installed("samba"): # Sambaが未インストールなら非活性
+            status = {'active': False, 'reason': 'Sambaが未インストール'}
+
+    # 他のメニュー項目に対するロジックを追加
+
+    return status
+
+def execute_function(function_id, input_data=None):
 
         elif function_id == "ufw_allow_8080":
             print("8080ポートを開放します...")
