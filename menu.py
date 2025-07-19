@@ -223,7 +223,24 @@ guest ok = yes
                 print("CLIから実行する場合は、`menu.py samba_delete_share --share_name <共有名>` のように指定してください。")
                 # CLIで選択メニューを表示したい場合は、ここにcurses.wrapper(select_share_menu, get_samba_shares())のようなロジックを追加
                 # 今回はWeb対応を優先するため、CLIでのインタラクティブな選択は省略
-                
+        elif function_id == "screen_start":
+            print("新しいScreenセッションを開始します...")
+            try:
+                # screen -S <セッション名> で新しいセッションを開始
+                # セッション名は適当に 'my_session' とする
+                subprocess.run("screen -S my_session", shell=True, check=True)
+                print("Screenセッションが開始されました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
+        elif function_id == "screen_resume":
+            print("Screenセッションを再開します...")
+            try:
+                # screen -r で既存のセッションを再開
+                # 複数のセッションがある場合は、リストが表示され選択を促される
+                subprocess.run("screen -r", shell=True, check=True)
+                print("Screenセッションを再開しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラーが発生しました: {e}")
         else:
             print(f"未定義の機能IDです: {function_id}")
 

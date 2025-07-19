@@ -23,3 +23,12 @@ menu:
       - id: install_gh
         title: GitHub CLI (gh) をインストール
         description: GitHubのコマンドラインツールをインストールします。
+  - title: ユーティリティ
+    description: その他の便利なツール
+    items:
+      - id: screen_start
+        title: Screenセッションを開始
+        description: 新しいGNU Screenセッションを開始します。
+      - id: screen_resume
+        title: Screenセッションを再開
+        description: 既存のGNU Screenセッションを再開します。
