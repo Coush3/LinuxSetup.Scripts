@@ -1,0 +1,20 @@
+
+{
+  "menu": [
+    {
+      "id": "system_update",
+      "title": "システムアップデート (apt update && upgrade)",
+      "description": "apt updateとapt upgradeを連続して実行します。"
+    },
+    {
+      "id": "samba_install_and_share",
+      "title": "Sambaインストールと共有設定",
+      "description": "Sambaをインストールし、指定されたフォルダを共有します。"
+    },
+    {
+      "id": "install_ms_edit",
+      "title": "Microsoft Editをインストール",
+      "description": "GitHubからMicrosoft Editをダウンロードしてインストールします。"
+    }
+  ]
+}
