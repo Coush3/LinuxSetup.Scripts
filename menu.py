@@ -4,8 +4,9 @@ import subprocess
 import sys
 import curses
 import io
-import argparse # 追加
-import time # 追加
+import argparse
+import time
+import re # 追加
 
 def main():
     parser = argparse.ArgumentParser(description="Linux Setup Menu CLI Tool")
