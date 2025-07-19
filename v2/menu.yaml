@@ -17,3 +17,6 @@ menu:
       - id: install_ms_edit
         title: Microsoft Editをインストール
         description: GitHubからMicrosoft Editをダウンロードしてインストールします。
+      - id: install_gh
+        title: GitHub CLI (gh) をインストール
+        description: GitHubのコマンドラインツールをインストールします。

@@ -1,4 +1,4 @@
-import json
+import yaml
 import os
 import subprocess
 import sys
@@ -132,9 +132,8 @@ guest ok = yes
         print(share_config)
 
         try:
-            with open(smb_conf_path, "a") as f:
-                # sudo を使って書き込むために、teeコマンドを利用
-                subprocess.run(f'echo "{share_config}" | sudo tee -a {smb_conf_path}', shell=True, check=True)
+            # sudo を使って書き込むために、teeコマンドを利用
+            subprocess.run(f'echo "{share_config}" | sudo tee -a {smb_conf_path}', shell=True, check=True)
             print("設定を追記しました。")
 
             # Sambaサービスを再起動
@@ -153,30 +152,52 @@ guest ok = yes
         except subprocess.CalledProcessError:
             print("zstdをインストールします...")
             subprocess.run("sudo apt update && sudo apt install -y zstd", shell=True, check=True)
-
-    try:
-        # ダウンロードと展開
-        download_url = "https://github.com/microsoft/edit/releases/download/v1.2.0/edit-1.2.0-x86_64-linux-gnu.tar.zst"
-        file_name = download_url.split("/")[-1]
         
-        print(f"{download_url} から {file_name} をダウンロードします...")
-        subprocess.run(f"wget {download_url}", shell=True, check=True)
+        try:
+            # ダウンロードと展開
+            download_url = "https://github.com/microsoft/edit/releases/download/v1.2.0/edit-1.2.0-x86_64-linux-gnu.tar.zst"
+            file_name = download_url.split("/")[-1]
+            
+            print(f"{download_url} から {file_name} をダウンロードします...")
+            subprocess.run(f"wget {download_url}", shell=True, check=True)
 
-        print(f"{file_name} を展開します...")
-        subprocess.run(f"tar -I zstd -xf {file_name}", shell=True, check=True)
+            print(f"{file_name} を展開します...")
+            subprocess.run(f"tar -I zstd -xf {file_name}", shell=True, check=True)
 
-        # インストール
-        print("editを /usr/local/bin にインストールします...")
-        subprocess.run("sudo mv edit /usr/local/bin/", shell=True, check=True)
+            # インストール
+            print("editを /usr/local/bin にインストールします...")
+            subprocess.run("sudo mv edit /usr/local/bin/", shell=True, check=True)
 
-        # クリーンアップ
-        print(f"{file_name} を削除します...")
-        os.remove(file_name)
+            # クリーンアップ
+            print(f"{file_name} を削除します...")
+            os.remove(file_name)
 
-        print("Microsoft Editのインストールが完了しました。")
+            print("Microsoft Editのインストールが完了しました。")
 
-    except Exception as e:
-        print(f"エラーが発生しました: {e}")
+        except Exception as e:
+            print(f"エラーが発生しました: {e}")
+
+    elif function_id == "install_gh":
+        print("GitHub CLI (gh) のインストールを開始します...")
+        try:
+            # ghがインストールされているか確認
+            subprocess.run("gh --version", shell=True, check=True, capture_output=True)
+            print("GitHub CLIは既にインストールされています。")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("GitHub CLIをインストールします...")
+            try:
+                # 公式のインストールスクリプトを実行
+                install_command = '''
+                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+                && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+                && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+                && sudo apt update \
+                && sudo apt install gh -y
+                '''
+                subprocess.run(install_command, shell=True, check=True)
+                print("GitHub CLIのインストールが完了しました。")
+            except subprocess.CalledProcessError as e:
+                print(f"エラー: GitHub CLIのインストールに失敗しました: {e}")
 
     else:
         print(f"未定義の機能IDです: {function_id}")
