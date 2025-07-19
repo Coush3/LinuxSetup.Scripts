@@ -521,7 +521,24 @@ guest ok = yes
                         log_content = f.read()
                         match = re.search(r"Web UI available at (http://[0-9a-fA-F\.:]+:[0-9]+\?tkn=[a-f0-9-]+)", log_content)
                         if match:
-                            print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
+                            base_url = match.group(1) # 例: http://0.0.0.0:8000?tkn=...
+
+                            # IPv4アドレスを取得
+                            ip_output = subprocess.run("ip a", shell=True, capture_output=True, text=True, check=True).stdout
+                            ipv4_addresses = re.findall(r"inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d+", ip_output)
+
+                            # ループバックアドレスを除外
+                            ipv4_addresses = [ip for ip in ipv4_addresses if ip != "127.0.0.1"]
+
+                            if ipv4_addresses:
+                                print("アクセスURL:")
+                                for ip in ipv4_addresses:
+                                    # 0.0.0.0 を実際のIPアドレスに置き換える
+                                    display_url = base_url.replace("0.0.0.0", ip)
+                                    print(f"  - {display_url}")
+                            else:
+                                print("IPv4アドレスを検出できませんでした。")
+                                print(f"ベースURL: {base_url}") # デバッグ用にベースURLも表示
                         else:
                             print("アクセスURLを検出できませんでした。ログファイルを確認してください。")
                 else:
