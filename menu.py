@@ -132,7 +132,7 @@ def show_menu(stdscr):
     stdscr.timeout(-1)
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_CYAN) # 非活性項目用の色
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK) # 非活性項目用の色 (グレー)
 
     # メニューデータの読み込み
     with open("menu.yaml", "r", encoding="utf-8") as f:
@@ -167,12 +167,12 @@ def show_menu(stdscr):
                 if status['active']:
                     stdscr.addstr(i + 3, 0, f"> {display_text.strip()}", curses.color_pair(1))
                 else:
-                    stdscr.addstr(i + 3, 0, f"> {display_text.strip()}", curses.color_pair(2)) # 非活性色
+                    stdscr.addstr(i + 3, 0, f"> {display_text.strip()}", curses.color_pair(2) | curses.A_DIM)
             else:
                 if status['active']:
                     stdscr.addstr(i + 3, 0, f"  {display_text.strip()}")
                 else:
-                    stdscr.addstr(i + 3, 0, f"  {display_text.strip()}", curses.color_pair(2)) # 非活性色
+                    stdscr.addstr(i + 3, 0, f"  {display_text.strip()}", curses.color_pair(2) | curses.A_DIM)
         
         # 説明の表示
         description = current_menu_items[current_row].get('description', '')
