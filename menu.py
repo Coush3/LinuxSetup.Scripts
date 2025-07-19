@@ -230,6 +230,27 @@ guest ok = yes
                 except subprocess.CalledProcessError as e:
                     print(f"エラー: Code Serverのインストールに失敗しました: {e}")
 
+        elif function_id == "install_vscode_remote_server_deps":
+            print("VS Code Remote - SSH Serverの依存関係をインストールします...")
+            packages = ["curl", "wget", "tar", "gzip", "rsync", "python3"]
+            missing_packages = []
+            for pkg in packages:
+                try:
+                    subprocess.run(f"which {pkg}", shell=True, check=True, capture_output=True)
+                except subprocess.CalledProcessError:
+                    missing_packages.append(pkg)
+            
+            if missing_packages:
+                print(f"以下のパッケージをインストールします: {', '.join(missing_packages)}")
+                try:
+                    subprocess.run(f"sudo apt update && sudo apt install -y {' '.join(missing_packages)}", shell=True, check=True)
+                    print("依存関係のインストールが完了しました。")
+                except subprocess.CalledProcessError as e:
+                    print(f"エラー: 依存関係のインストールに失敗しました: {e}")
+            else:
+                print("必要な依存関係はすべてインストールされています。")
+            print("これで、ローカルのVS CodeからSSH接続を試みてください。VS Codeが自動的にリモートサーバーにVS Code Serverをインストールします。")
+
         elif function_id == "samba_delete_share":
             # Webから呼び出す場合はinput_dataに削除する共有名が含まれる
             share_name_to_delete = input_data.get("share_name") if input_data else None

@@ -26,6 +26,9 @@ menu:
       - id: install_code_server
         title: Code Serverをインストール
         description: WebブラウザからアクセスできるVS Codeをインストールします。
+      - id: install_vscode_remote_server_deps
+        title: VS Code Remote - SSH Serverの依存関係をインストール
+        description: VS Code Remote - SSH Serverが動作するために必要な依存関係をインストールします。
       - title: Code Server
         description: Code Serverの操作
         items:
