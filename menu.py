@@ -135,7 +135,9 @@ def show_menu(stdscr):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK) # 非活性項目用の色 (グレー)
 
     # メニューデータの読み込み
-    with open("menu.yaml", "r", encoding="utf-8") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    menu_yaml_path = os.path.join(script_dir, "menu.yaml")
+    with open(menu_yaml_path, "r", encoding="utf-8") as f:
         menu_data = yaml.safe_load(f)
     
     # メニュー階層を管理するスタック
