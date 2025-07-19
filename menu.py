@@ -5,6 +5,7 @@ import sys
 import curses
 import io
 import argparse # 追加
+import time # 追加
 
 def main():
     parser = argparse.ArgumentParser(description="Linux Setup Menu CLI Tool")
@@ -382,9 +383,13 @@ guest ok = yes
 
                 # vscode ユーザーのホームディレクトリの所有権を設定
                 print("ユーザー 'vscode' のホームディレクトリの所有権を設定します...")
-                result = subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
+                subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True)
                 print("所有権を設定しました。")
+
+                # vscode ユーザーとして一度codeコマンドを実行し、初期設定を完了させる
+                print("ユーザー 'vscode' としてVS Codeの初期設定を行います...")
+                subprocess.run("sudo -u vscode code --version", shell=True, check=True, capture_output=True, text=True)
+                print("VS Codeの初期設定が完了しました。")
 
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
             except subprocess.CalledProcessError as e:
@@ -485,24 +490,43 @@ guest ok = yes
                 print(f"標準出力: {e.stdout}")
                 print(f"標準エラー: {e.stderr}")
         elif function_id == "start_vscode_web_server":
-            print("VS Code Webサーバーを起動します... (Ctrl+Cで終了)")
+            print("VS Code Webサーバーをバックグラウンドで起動します...")
+            log_file_path = "/tmp/vscode_web_server.log"
             try:
-                # vscode ユーザーとしてcode serve-webを実行
-                command = "sudo -u vscode code serve-web --host 0.0.0.0"
-                result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-                print(result.stdout)
-                print(result.stderr)
-                # ログからURLを抽出して表示
-                import re
-                match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", result.stdout)
-                if match:
-                    print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
-                else:
-                    print("アクセスURLを検出できませんでした。ログを確認してください。")
+                # 既存のプロセスを終了 (念のため)
+                subprocess.run("sudo pkill -f 'code serve-web'", shell=True, capture_output=True, text=True)
+
+                # vscode ユーザーとしてcode serve-webをバックグラウンドで実行し、ログをファイルにリダイレクト
+                command = f"sudo -u vscode nohup code serve-web --host 0.0.0.0 > {log_file_path} 2>&1 &"
+                subprocess.run(command, shell=True, check=True)
+
+                print(f"VS Code Webサーバーをバックグラウンドで起動しました。ログは {log_file_path} を確認してください。")
+                print("URLを検出しています... (最大15秒)")
+                url_found = False
+                start_time = time.time()
+                while time.time() - start_time < 15: # 最大15秒待機
+                    if os.path.exists(log_file_path):
+                        with open(log_file_path, 'r') as f:
+                            log_content = f.read()
+                            match = re.search(r"Web UI available at (http://[0-9\.]+:[0-9]+/?tkn=[a-f0-9-]+)", log_content)
+                            if match:
+                                print(f"アクセスURL: {match.group(1).replace('0.0.0.0', '<あなたのサーバーのIPアドレス>')}")
+                                url_found = True
+                                break
+                    time.sleep(1) # 1秒ごとにチェック
+
+                if not url_found:
+                    print("アクセスURLを検出できませんでした。ログファイルを確認してください。")
+                print("VS Code Webサーバーはバックグラウンドで実行中です。")
+                print("停止するには、以下のコマンドを実行してください:")
+                print("  sudo pkill -f 'code serve-web'")
+
             except subprocess.CalledProcessError as e:
                 print(f"エラーが発生しました: {e}")
                 print(f"標準出力: {e.stdout}")
                 print(f"標準エラー: {e.stderr}")
+            except Exception as e:
+                print(f"予期せぬエラーが発生しました: {e}")
         elif function_id == "code_server_start_manual":
             print("Code Serverを手動で起動します... (Ctrl+Cで終了)")
             try:
