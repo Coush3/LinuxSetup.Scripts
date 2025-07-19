@@ -264,6 +264,12 @@ guest ok = yes
                 subprocess.run("sudo sh -c 'echo \"deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main\" > /etc/apt/sources.list.d/vscode.list'", shell=True, check=True)
                 # パッケージリストを更新してVS Codeをインストール
                 subprocess.run("sudo apt update && sudo apt install -y code", shell=True, check=True)
+
+                # vscode ユーザーのホームディレクトリの所有権を設定
+                print("ユーザー 'vscode' のホームディレクトリの所有権を設定します...")
+                subprocess.run("sudo chown -R vscode:vscode /home/vscode", shell=True, check=True)
+                print("所有権を設定しました。")
+
                 print("Visual Studio Code (Desktop) のインストールが完了しました。")
             except subprocess.CalledProcessError as e:
                 print(f"エラー: Visual Studio Code (Desktop) のインストールに失敗しました: {e}")
